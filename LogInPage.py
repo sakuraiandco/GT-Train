@@ -2,6 +2,7 @@ from tkinter import *
 import urllib.request
 import base64
 from tkinter import messagebox
+import datetime
 
 class GUI:
 
@@ -53,7 +54,7 @@ class GUI:
         register.pack(side=RIGHT)
 
         #creates Login button
-        login = Button(self.frame,text="Login",command=self.chooseFunc)#,command=self.toLogin)
+        login = Button(self.frame,text="Login",command=self.chooseCFunc)#,command=self.toLogin)
         login.pack(side=RIGHT)
 
 ##    def connect(self):
@@ -69,7 +70,10 @@ class GUI:
 ##
 ##        try:
 ##            check login info
-##            self.chooseFunc
+##        if customer:
+##            self.chooseCFunc
+##        if manager:
+#            self.chooseMFunc
 ##        
 ##        except:
 ##            r = messagebox.showerror("Error!","An invalid username or password has been entered.")
@@ -147,55 +151,276 @@ class GUI:
 
 
 
-###### CHOOSE FUNCTION SCREEN #######
+###### CHOOSE CUSTOMER FUNCTION SCREEN #######
 
-    def chooseFunc(self):
-        self.rootWin3 = Toplevel()
-        self.rootWin3.title("Menu")
+    def chooseCFunc(self):
+        self.rootWinCF = Toplevel()
+        self.rootWinCF.title("Menu")
         try:
             self.rootWin2.withdraw()
         except:
             self.rootWin.withdraw()
 
-        pic = Label(self.rootWin3,image=self.image)
+        pic = Label(self.rootWinCF,image=self.image)
         pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
 
-        c = Label(self.rootWin3,text="Choose Functionality",font=("Calibri",15,"bold"),fg="gold")
+        c = Label(self.rootWinCF,text="Choose Functionality",font=("Calibri",15,"bold"),fg="gold")
         c.grid(row=1,column=0,columnspan=2,pady=5)
 
-        view = Button(self.rootWin3,text="View Train Schedule",fg="blue",command=self.typeTrainNum)
+        view = Button(self.rootWinCF,text="View Train Schedule",fg="blue",command=self.typeTrainNum)
         view.grid(row=2,column=0,columnspan=2,pady=5)
         
-        make = Button(self.rootWin3,text="Make a new reservation",fg="blue")
+        make = Button(self.rootWinCF,text="Make a new reservation",fg="blue")
         make.grid(row=3,column=0,columnspan=2,pady=5)
 
-        update = Button(self.rootWin3,text="Update a reservation",fg="blue")
+        update = Button(self.rootWinCF,text="Update a reservation",fg="blue")
         update.grid(row=4,column=0,columnspan=2,pady=5)
 
-        cancel = Button(self.rootWin3,text="Cancel a reservation",fg="blue")
+        cancel = Button(self.rootWinCF,text="Cancel a reservation",fg="blue",command=self.cancelReservation)
         cancel.grid(row=5,column=0,columnspan=2,pady=5)
 
-        review = Button(self.rootWin3,text="Give review",fg="blue")
-        review.grid(row=6,column=0,columnspan=2,pady=5)
+        giveR = Button(self.rootWinCF,text="Give review",fg="blue",command=self.giveReview)
+        giveR.grid(row=6,column=0,columnspan=2,pady=5)
 
-        school = Button(self.rootWin3,text="Add school information (student discount)",fg="blue",command=self.addSchool)
-        school.grid(row=7,column=0,columnspan=2,pady=5)
+        viewR = Button(self.rootWinCF,text="View review",fg="blue",command=self.viewReview)
+        viewR.grid(row=7,column=0,columnspan=2,pady=5)
 
-        logout = Button(self.rootWin3,text="Log out",command=self.logout)
-        logout.grid(row=8,column=1,padx=5,pady=5,sticky=E)
+        school = Button(self.rootWinCF,text="Add school information (student discount)",fg="blue",command=self.addSchool)
+        school.grid(row=8,column=0,columnspan=2,pady=5)
+
+        logout = Button(self.rootWinCF,text="Log out",command=self.logout)
+        logout.grid(row=9,column=1,padx=5,pady=5,sticky=E)
 
     def logout(self):
-        self.rootWin3.withdraw()
+        try:
+            self.rootWinCF.destroy()
+        except:
+            self.rootWinMF.destroy()
         self.rootWin.deiconify()
 
 
+###### VIEW TRAIN SCHEDULE ########
 
-##### ADD SCHOOL INFO#######
+    def typeTrainNum(self):
+        self.rootWin5 = Toplevel()
+        self.rootWin5.title("View Train Schedule")
+        self.rootWinCF.withdraw()
+
+        pic = Label(self.rootWin5,image=self.image)
+        pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+        v = Label(self.rootWin5,text="View Train Schedule",font=("Calibri",15,"bold"),fg="gold")
+        v.grid(row=1,column=0,columnspan=2,pady=5)
+
+        tNum = Label(self.rootWin5,text="Train Number:")
+        tNum.grid(row=2,column=0,padx=5,pady=5)
+
+        self.tNsv = StringVar()
+        self.tNE = Entry(self.rootWin5,textvariable=self.tNsv,width=20)
+        self.tNE.grid(row=2,column=1,padx=5,pady=5)
+
+        search = Button(self.rootWin5,text="Search")
+        search.grid(row=3,column=0,columnspan=2,pady=10)
+
+####### CANCEL RESERVATION ######
+
+    def cancelReservation(self):
+        self.rootWinCR = Toplevel()
+        self.rootWinCR.title("Cancel Reservation")
+        self.rootWinCF.withdraw()
+
+        pic = Label(self.rootWinCR,image=self.image)
+        pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+        v = Label(self.rootWinCR,text="Cancel Reservation",font=("Calibri",15,"bold"),fg="gold")
+        v.grid(row=1,column=0,columnspan=2,pady=5)
+
+        rNum = Label(self.rootWinCR,text="Reservation ID")
+        rNum.grid(row=2,column=0,padx=5,pady=5)
+
+        self.rIDsv = StringVar()
+        self.rIDE = Entry(self.rootWinCR,textvariable=self.rIDsv,width=15)
+        self.rIDE.grid(row=2,column=1,padx=5,pady=5)
+
+        back = Button(self.rootWinCR,text="Back",command=self.backCancel)
+        back.grid(row=3,column=0,padx=10,pady=15,sticky=W)
+
+        search = Button(self.rootWinCR,text="Search",command=self.cancel)
+        search.grid(row=3,column=1,padx=10,pady=15,sticky=E)
+
+    def backCancel(self):
+        self.rootWinCR.destroy()
+        self.rootWinCF.deiconify()
+
+    def cancel(self):
+        rID = self.rIDE.get()
+        if rID == "":
+            r = messagebox.showerror("Error!","Please enter a reservation ID.")
+
+        else:
+        #check for reservation ID in database and that it has not already been cancelled
+
+            self.rootWinC = Toplevel()
+            self.rootWinC.title("Cancel Reservation")
+            self.rootWinCR.withdraw()
+
+            pic = Label(self.rootWinC,image=self.image)
+            pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+            v = Label(self.rootWinC,text="Cancel Reservation",font=("Calibri",15,"bold"),fg="gold")
+            v.grid(row=1,column=0,columnspan=2,pady=5)
+
+        ## table with reservations listed ##
+
+        #total cost of reservation
+
+            c = Label(self.rootWinC,text="Total Cost of Reservation")
+            c.grid(row=3,column=0,padx=5,pady=5,sticky=W)
+
+            #cost = (from database)
+            self.costRiv = IntVar()
+            #self.costRsv.set(cost)
+            self.costRE = Entry(self.rootWinC,textvariable=self.costRiv,width=15)
+            self.costRE.grid(row=3,column=1,padx=5,pady=5)
+            
+        #date of cancellation
+            
+            d = Label(self.rootWinC,text="Date of Cancellation")
+            d.grid(row=4,column=0,padx=5,pady=5,sticky=W)
+
+            self.datesv = StringVar()
+            self.datesv.set(datetime.date.today())
+            self.dateE = Entry(self.rootWinC,textvariable=self.datesv,width=15)
+            self.dateE.grid(row=4,column=1,padx=5,pady=5)
+
+        #amount to be refunded
+            
+            amount = Label(self.rootWinC,text="Amount to be Refunded")
+            amount.grid(row=5,column=0,padx=5,pady=5,sticky=W)
+
+            #refund = (from database)
+            self.rfiv = IntVar()
+            #self.rfiv.set(refund)
+            self.rfE = Entry(self.rootWinC,textvariable=self.rfiv,width=15)
+            self.rfE.grid(row=5,column=1,padx=5,pady=5)
+
+        #navigation buttons
+            
+            back = Button(self.rootWinC,text="Back",command=self.backCancel)
+            back.grid(row=6,column=0,padx=10,pady=15,sticky=W)
+
+            search = Button(self.rootWinC,text="Submit",command=self.cancel)
+            search.grid(row=6,column=1,padx=10,pady=15,sticky=E)
+
+####### GIVE REVIEW ########
+
+    def giveReview(self):
+        self.rootWinGR = Toplevel()
+        self.rootWinGR.title("Give Review")
+        self.rootWinCF.withdraw()
+
+        pic = Label(self.rootWinGR,image=self.image)
+        pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+        g = Label(self.rootWinGR,text="Give Review",font=("Calibri",15,"bold"),fg="gold")
+        g.grid(row=1,column=0,columnspan=2,pady=5)
+
+        tNum = Label(self.rootWinGR,text="Train Number")
+        tNum.grid(row=2,column=0,padx=5,pady=5,sticky=W)
+
+        self.tNRsv = StringVar()
+        self.tNRE = Entry(self.rootWinGR,textvariable=self.tNRsv,width=30)
+        self.tNRE.grid(row=2,column=1,padx=5,pady=5)        
+
+        r = Label(self.rootWinGR,text="Rating")
+        r.grid(row=3,column=0,padx=5,pady=5,sticky=W)
+    
+        self.rating = StringVar()
+        self.rating.set("Good")
+        pulldown = OptionMenu(self.rootWinGR,self.rating,"Very Good","Good","Neutral","Bad","Very Bad")
+        pulldown.grid(row=3,column=1,padx=5,pady=5,sticky=W)
+        
+        c = Label(self.rootWinGR,text="Comment")
+        c.grid(row=4,column=0,padx=5,pady=5,sticky=W)
+
+        self.comsv = StringVar()
+        self.comE = Entry(self.rootWinGR,textvariable=self.comsv,width=30)
+        self.comE.grid(row=4,column=1,padx=5,pady=5)
+
+        submit = Button(self.rootWinGR,text="Submit",command=self.submitReview)
+        submit.grid(row=5,column=1,padx=10,pady=15,sticky=E)
+
+    def submitReview(self):
+        trainNum = self.tNRE.get()
+        rating = self.rating.get()
+        
+        if trainNum == "":
+            r = messagebox.showerror("Error!","Please enter a train number.")
+
+        #check if train number is not available in database
+            #r = messagebox.showerror("Error!","This train number is unavailable.")
+            
+        else:
+            #assign review to train number
+            self.rootWinGR.destroy()
+            self.rootWinCF.deiconify()
+        
+
+####### VIEW REVIEW ##########
+
+    def viewReview(self):
+        self.rootWinVR = Toplevel()
+        self.rootWinVR.title("View Review")
+        self.rootWinCF.withdraw()
+
+        pic = Label(self.rootWinVR,image=self.image)
+        pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+        v = Label(self.rootWinVR,text="View Review",font=("Calibri",15,"bold"),fg="gold")
+        v.grid(row=1,column=0,columnspan=2,pady=5)
+
+        tNum = Label(self.rootWinVR,text="Train Number:")
+        tNum.grid(row=2,column=0,padx=5,pady=5,sticky=W)
+
+        self.tNVRsv = StringVar()
+        self.tNVRE = Entry(self.rootWinVR,textvariable=self.tNVRsv,width=20)
+        self.tNVRE.grid(row=2,column=1,padx=5,pady=5)
+
+        back = Button(self.rootWinVR,text="Back",command=self.backReview)
+        back.grid(row=3,column=0,padx=10,pady=15,sticky=W)
+
+        find = Button(self.rootWinVR,text="Next",command=self.reviewTable)
+        find.grid(row=3,column=1,padx=10,pady=15,sticky=E)
+
+    def backReview(self):
+        self.rootWinVR.destroy()
+        self.rootWinCF.deiconify()
+
+    def reviewTable(self):
+        self.rootWinRT = Toplevel()
+        self.rootWinRT.title("View Review")
+        self.rootWinVR.withdraw()
+
+        pic = Label(self.rootWinRT,image=self.image)
+        pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+        v = Label(self.rootWinRT,text="View Review",font=("Calibri",15,"bold"),fg="gold")
+        v.grid(row=1,column=0,columnspan=2,pady=5)
+
+        back = Button(self.rootWinRT,text="Back to Choose Functionality",command=self.backReviewTable)
+        back.grid(row=3,column=0,columnspan=2,padx=10,pady=15)
+
+    def backReviewTable(self):
+        self.rootWinRT.destroy()
+        self.rootWinCF.deiconify()
+
+
+##### ADD SCHOOL INFO #######
 
     def addSchool(self):
         self.rootWin4 = Toplevel()
         self.rootWin4.title("Add School Information")
-        self.rootWin3.withdraw()
+        self.rootWinCF.withdraw()
 
         pic = Label(self.rootWin4,image=self.image)
         pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
@@ -220,8 +445,8 @@ class GUI:
         submit.grid(row=4,column=1,padx=10,pady=15,sticky=E)
 
     def backSchool(self):
-        self.rootWin4.withdraw()
-        self.rootWin3.deiconify()
+        self.rootWin4.destroy()
+        self.rootWinCF.deiconify()
 
     def submitSchool(self):
         schoolEmail = self.seE.get()
@@ -229,35 +454,33 @@ class GUI:
         if schoolEmail.endswith(".edu") == True:
             print("True")
             #add student to customer in database
-            self.rootWin4.withdraw()
-            self.rootWin3.deiconify()
+            self.rootWin4.destroy()
+            self.rootWinCF.deiconify()
         else:
             r = messagebox.showerror("Error!","This is not a valid school email address.")
 
 
+####### CHOOSE MANAGER FUNCTION SCREEN ########
 
-###### VIEW TRAIN SCHEDULE ########
+    def chooseMFunc(self):
+        self.rootWinMF = Toplevel()
+        self.rootWinMF.title("Menu")
+        self.rootWin.withdraw()
 
-    def typeTrainNum(self):
-        self.rootWin5 = Toplevel()
-        self.rootWin5.title("View Train Schedule")
-        self.rootWin3.withdraw()
-
-        pic = Label(self.rootWin5,image=self.image)
+        pic = Label(self.rootWinMF,image=self.image)
         pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
 
-        v = Label(self.rootWin5,text="View Train Schedule",font=("Calibri",15,"bold"),fg="gold")
-        v.grid(row=1,column=0,columnspan=2,pady=5)
+        c = Label(self.rootWinMF,text="Choose Functionality",font=("Calibri",15,"bold"),fg="gold")
+        c.grid(row=1,column=0,columnspan=2,pady=5)
 
-        tNum = Label(self.rootWin5,text="Train Number:")
-        tNum.grid(row=2,column=0,padx=5,pady=5,sticky=W)
+        rev = Button(self.rootWinMF,text="View revenue report",fg="blue",command=self.typeTrainNum)
+        rev.grid(row=2,column=0,columnspan=2,pady=5)
+        
+        route = Button(self.rootWinMF,text="View popular route report",fg="blue")
+        route.grid(row=3,column=0,columnspan=2,pady=5)
 
-        self.tNsv = StringVar()
-        self.tNE = Entry(self.rootWin5,textvariable=self.tNsv,width=20)
-        self.tNE.grid(row=2,column=1,padx=5,pady=5)
-
-        search = Button(self.rootWin5,text="Search")
-        search.grid(row=3,column=0,columnspan=2,pady=10)
+        logout = Button(self.rootWinMF,text="Log out",command=self.logout)
+        logout.grid(row=4,column=1,padx=5,pady=10,sticky=E)
 
         
 win = Tk()
