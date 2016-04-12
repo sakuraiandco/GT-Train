@@ -1,8 +1,3 @@
-# Yvette Poshedly
-# Section A3
-# yposhedly3@gatech.edu
-# I worked on this assignment alone, using only this semester's course materials
-
 from tkinter import *
 import urllib.request
 import base64
