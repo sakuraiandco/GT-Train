@@ -411,15 +411,44 @@ class GUI:
         back = Button(self.rootWinRes,text="Back",command=self.backToTravel)
         back.grid(row=7,column=0,padx=10,pady=15,sticky=W)
 
-        submit = Button(self.rootWinRes,text="Submit")#,command=self.reserveInfo)
+        submit = Button(self.rootWinRes,text="Submit",command=self.confirmScreen)#,command=self.submitRes)
         submit.grid(row=7,column=2,padx=10,pady=15,sticky=E)
 
     def backToTravel(self):
         self.rootWinRes.withdraw()
         self.rootWinTravel.deiconify()
 
-    #def submit(self):
+    #def submitRes(self):
         ## add all info to database ##
+
+        # self.confirmScreen()
+
+    def confirmScreen(self):
+        self.rootWinCon = Toplevel()
+        self.rootWinCon.title("Make a reservation")
+        self.rootWinRes.withdraw()
+
+        v = Label(self.rootWinCon,text="Confirmation",font=("Calibri",15,"bold"),fg="gold")
+        v.grid(row=1,column=0,columnspan=2,pady=5)
+
+        r = Label(self.rootWinCon,text="Reservation ID")
+        r.grid(row=2,column=0,padx=5,pady=5,sticky=W)
+
+        resID = 12345
+        self.resIDsv = StringVar()
+        self.resIDsv.set(resID)
+        self.resIDE = Entry(self.rootWinCon,textvariable=self.resIDsv,width=10)
+        self.resIDE.grid(row=2,column=1,padx=5,pady=5)
+
+        small = Label(self.rootWinCon,text="Thank you for your purchase! Please save reservation ID for your records.",font=("Calibri",8))
+        small.grid(row=3,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+        back = Button(self.rootWinCon,text="Back to Choose Functionality",command=self.backConfirm)
+        back.grid(row=4,column=0,columnspan=2,padx=10,pady=15)
+
+    def backConfirm(self):
+        self.rootWinCon.destroy()
+        self.rootWinCF.deiconify()
 
     ## payment info ##
 
