@@ -47,15 +47,15 @@ class GUI:
 
         #creates button frame
         self.frame = Frame(self.rootWin)
-        self.frame.grid(row=4,column=1,sticky=E)
+        self.frame.grid(row=4,column=1,padx=2,sticky=E)
 
         #creates Register button
         register = Button(self.frame,text="Register",command=self.toRegister)
-        register.pack(side=RIGHT)
+        register.pack(side=RIGHT,padx=2,pady=5)
 
         #creates Login button
         login = Button(self.frame,text="Login",command=self.chooseCFunc)#,command=self.toLogin)
-        login.pack(side=RIGHT)
+        login.pack(side=RIGHT,padx=2,pady=5)
 
 ##    def connect(self):
 ##        db = pymysql.connect(host="academic-mysql.cc.gatech.edu",
@@ -90,7 +90,7 @@ class GUI:
         pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
 
         n = Label(self.rootWin2,text="New User Registration",font=("Calibri",15,"bold"),fg="gold")
-        n.grid(row=1,column=0,columnspan=2)
+        n.grid(row=1,column=0,columnspan=2,pady=5)
 
         u = Label(self.rootWin2,text="Username:")
         u.grid(row=2,column=0,sticky=E)
@@ -120,11 +120,15 @@ class GUI:
         self.cpE = Entry(self.rootWin2,textvariable=self.cpsv,width=30)
         self.cpE.grid(row=5,column=1,padx=5)
 
-        self.frame2 = Frame(self.rootWin2)
-        self.frame2.grid(row=6,column=1,sticky=E)
-        
-        create = Button(self.frame2,text="Create",command=self.checkReg)
-        create.pack()
+        back = Button(self.rootWin2,text="Back",command=self.backLogin)
+        back.grid(row=6,column=0,padx=5,pady=5,sticky=W)
+
+        create = Button(self.rootWin2,text="Create",command=self.checkReg)
+        create.grid(row=6,column=1,padx=5,pady=5,sticky=E)
+
+    def backLogin(self):
+        self.rootWin2.destroy()
+        self.rootWin.deiconify()
 
     def checkReg(self):
 ##        self.connect()
@@ -170,7 +174,7 @@ class GUI:
         view = Button(self.rootWinCF,text="View Train Schedule",fg="blue",command=self.typeTrainNum)
         view.grid(row=2,column=0,columnspan=2,pady=5)
         
-        make = Button(self.rootWinCF,text="Make a new reservation",fg="blue")
+        make = Button(self.rootWinCF,text="Make a new reservation",fg="blue",command=self.searchTrain)
         make.grid(row=3,column=0,columnspan=2,pady=5)
 
         update = Button(self.rootWinCF,text="Update a reservation",fg="blue")
@@ -219,8 +223,274 @@ class GUI:
         self.tNE = Entry(self.rootWin5,textvariable=self.tNsv,width=20)
         self.tNE.grid(row=2,column=1,padx=5,pady=5)
 
-        search = Button(self.rootWin5,text="Search")
+        search = Button(self.rootWin5,text="Search",command=self.trainSchedule)
         search.grid(row=3,column=0,columnspan=2,pady=10)
+
+    def trainSchedule(self):
+        tNum = self.tNE.get()
+        if tNum == "":
+            r = messagebox.showerror("Error!","Please enter a train number.")
+
+        else:
+            #check if train number is unique
+            
+            self.rootWinSched = Toplevel()
+            self.rootWinSched.title("View Train Schedule")
+            self.rootWin5.withdraw()
+
+            v = Label(self.rootWinSched,text="View Train Schedule",font=("Calibri",15,"bold"),fg="gold")
+            v.grid(row=1,column=0,columnspan=2,pady=5)
+
+            ## table of train schedule ##
+
+            back = Button(self.rootWinSched,text="Back",command=self.backViewTrain)
+            back.grid(row=3,column=0,padx=10,pady=15)
+
+    def backViewTrain(self):
+        self.rootWinSched.destroy()
+        self.rootWin5.deiconify()
+
+####### MAKE A NEW RESERVATION ########
+
+    ### search trains that fit criteria ###
+
+    def searchTrain(self):
+        self.rootWinSearch = Toplevel()
+        self.rootWinSearch.title("Make a Reservation")
+        self.rootWinCF.withdraw()
+
+        pic = Label(self.rootWinSearch,image=self.image)
+        pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+        s = Label(self.rootWinSearch,text="Search Train",font=("Calibri",15,"bold"),fg="gold")
+        s.grid(row=1,column=0,columnspan=2,pady=5)
+
+        tNum = Label(self.rootWinSearch,text="Departs From")
+        tNum.grid(row=2,column=0,padx=5,pady=5,sticky=W)
+
+        #populate with possible starting cities
+        cities = ["Boston (BBY)","New York (Penn Station)"]
+
+        self.departsFrom = StringVar()
+        pulldownD = OptionMenu(self.rootWinSearch,self.departsFrom,*cities)
+        pulldownD.grid(row=2,column=1,padx=5,pady=5,sticky=W)
+
+        r = Label(self.rootWinSearch,text="Arrives At")
+        r.grid(row=3,column=0,padx=5,pady=5,sticky=W)
+
+        self.arrivesAt = StringVar()
+        pulldownA = OptionMenu(self.rootWinSearch,self.arrivesAt,*cities)
+        pulldownA.grid(row=3,column=1,padx=5,pady=5,sticky=W)
+
+        c = Label(self.rootWinSearch,text="Departure Date")
+        c.grid(row=4,column=0,padx=5,pady=5,sticky=W)
+
+        self.departDatesv = StringVar()
+        self.departDateE = Entry(self.rootWinSearch,textvariable=self.departDatesv,width=20)
+        self.departDateE.grid(row=4,column=1,padx=5,pady=5,sticky=W)
+
+        submit = Button(self.rootWinSearch,text="Find Trains",command=self.selectDepart)
+        submit.grid(row=5,column=1,padx=10,pady=15,sticky=E)
+
+    ### of available trains, select which to buy ticket from ###
+    
+    def selectDepart(self):
+        departsFrom = self.departsFrom.get()
+        arrivesAt = self.arrivesAt.get()
+        departDate = self.departDateE.get()
+        
+##        if departsFrom == "":
+##            r = messagebox.showerror("Error!","Please select a departure city.")
+##        elif arrivesAt == "":
+##            r = messagebox.showerror("Error!","Please select an arrival location.")
+##        elif departDate == "":
+##            r = messagebox.showerror("Error!","Please enter a departure date.")
+##
+##        else:
+        #locate trains
+        
+        self.rootWinSelectD = Toplevel()
+        self.rootWinSelectD.title("Make a Reservation")
+        self.rootWinSearch.withdraw()
+
+        v = Label(self.rootWinSelectD,text="Select Departure",font=("Calibri",15,"bold"),fg="gold")
+        v.grid(row=1,column=0,columnspan=2,pady=5)
+
+        ## table of train schedule with costs ##
+
+        back = Button(self.rootWinSelectD,text="Back",command=self.backToSearch)
+        back.grid(row=3,column=0,padx=10,pady=15)
+
+        search = Button(self.rootWinSelectD,text="Next",command=self.travelInfo)
+        search.grid(row=3,column=1,padx=10,pady=15,sticky=E)
+
+    def backToSearch(self):
+        self.rootWinSelectD.destroy()
+        self.rootWinSearch.deiconify()
+
+    ### add number of baggages and passenger name ###
+
+    def travelInfo(self):
+        self.rootWinTravel = Toplevel()
+        self.rootWinTravel.title("Make a reservation")
+        self.rootWinSelectD.withdraw()
+
+        v = Label(self.rootWinTravel,text="Travel Extras & Passenger Info",font=("Calibri",15,"bold"),fg="gold")
+        v.grid(row=1,column=0,columnspan=2,pady=5)
+        
+        n = Label(self.rootWinTravel,text="Number of Baggage")
+        n.grid(row=2,column=0,padx=5,pady=5,sticky=W)
+
+        self.numBag = IntVar()
+        pulldownB = OptionMenu(self.rootWinTravel,self.numBag,0,1,2,3,4)
+        pulldownB.grid(row=2,column=1,padx=5,pady=5,sticky=W)
+
+        small = Label(self.rootWinTravel,text="Every passenger can bring up to 4 baggage. 2 free of charge, 2 for $30 per bag",font=("Calibri",8))
+        small.grid(row=3,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+        c = Label(self.rootWinTravel,text="Passenger Name")
+        c.grid(row=4,column=0,padx=5,pady=5,sticky=W)
+
+        self.passNamesv = StringVar()
+        self.passNameE = Entry(self.rootWinTravel,textvariable=self.passNamesv,width=30)
+        self.passNameE.grid(row=4,column=1,padx=5,pady=5,sticky=W)
+
+        back = Button(self.rootWinTravel,text="Back",command=self.backToSelect)
+        back.grid(row=5,column=0,padx=10,pady=15)
+
+        search = Button(self.rootWinTravel,text="Next",command=self.reserveInfo)
+        search.grid(row=5,column=1,padx=10,pady=15,sticky=E)
+
+    def backToSelect(self):
+        self.rootWinTravel.withdraw()
+        self.rootWinSelectD.deiconify()
+
+    ### shows reservation info and total calculated cost ###
+
+    def reserveInfo(self):
+        self.rootWinRes = Toplevel()
+        self.rootWinRes.title("Make a reservation")
+        self.rootWinTravel.withdraw()
+
+        v = Label(self.rootWinRes,text="Make Reservation",font=("Calibri",15,"bold"),fg="gold")
+        v.grid(row=0,column=0,columnspan=3,pady=5)
+
+        cs = Label(self.rootWinRes,text="Currently Selected")
+        cs.grid(row=1,column=0,padx=5,sticky=W)
+
+        # table with reservation informaation
+
+        # check if student discount is to be applied, if so:
+        sd = Label(self.rootWinRes,text="Student Discount Applied")
+        sd.grid(row=3,column=0,padx=5,pady=5,sticky=W)
+
+        tc = Label(self.rootWinRes,text="Total Cost")
+        tc.grid(row=4,column=0,padx=5,sticky=W)
+
+        #calculate total cost from database
+        self.costIV = IntVar()
+        #self.costIV.set(cost)
+        self.costE = Entry(self.rootWinRes,textvariable=self.costIV,width=25)
+        self.costE.grid(row=4,column=1,columnspan=2,padx=5,sticky=W)
+
+        uc = Label(self.rootWinRes,text="Use Card")
+        uc.grid(row=5,column=0,padx=5,sticky=W)
+
+        cards = [2541] #get cards from database
+        self.chosenCard = StringVar()
+        pulldownC = OptionMenu(self.rootWinRes,self.chosenCard,*cards)
+        pulldownC.grid(row=5,column=1,pady=5,sticky=W)
+
+        ac = Button(self.rootWinRes,text="Add Card",fg="blue",command=self.payInfo)
+        ac.grid(row=5,column=2,padx=5,pady=5,sticky=W)
+
+        #still need to add function for going back and adding more trains
+        ca = Button(self.rootWinRes,text="Continue adding a train",fg="blue")
+        ca.grid(row=6,column=0,padx=5,pady=5,sticky=W)
+
+        back = Button(self.rootWinRes,text="Back",command=self.backToTravel)
+        back.grid(row=7,column=0,padx=10,pady=15,sticky=W)
+
+        submit = Button(self.rootWinRes,text="Submit")#,command=self.reserveInfo)
+        submit.grid(row=7,column=2,padx=10,pady=15,sticky=E)
+
+    def backToTravel(self):
+        self.rootWinRes.withdraw()
+        self.rootWinTravel.deiconify()
+
+    #def submit(self):
+        ## add all info to database ##
+
+    ## payment info ##
+
+    def payInfo(self):
+        self.rootWinPay = Toplevel()
+        self.rootWinPay.title("Payment Information")
+        self.rootWinRes.withdraw()
+
+        v = Label(self.rootWinPay,text="Payment Information",font=("Calibri",15,"bold"),fg="gold")
+        v.grid(row=0,column=0,columnspan=4,pady=5)
+
+        ## ADD CARD ##
+        
+        ac = Label(self.rootWinPay,text="Add Card",font=("Calibri",12,"bold"))
+        ac.grid(row=1,column=0,padx=5,pady=10,sticky=W)
+
+        n = Label(self.rootWinPay,text="Name on Card")
+        n.grid(row=2,column=0,padx=5,sticky=W)
+
+        self.nameCsv = StringVar()
+        self.nameCE = Entry(self.rootWinPay,textvariable=self.nameCsv,width=20)
+        self.nameCE.grid(row=2,column=1,padx=5,sticky=W)
+
+        cn = Label(self.rootWinPay,text="Card Number")
+        cn.grid(row=3,column=0,padx=5,sticky=W)
+
+        self.cardNumsv = StringVar()
+        self.cardNumE = Entry(self.rootWinPay,textvariable=self.cardNumsv,width=20)
+        self.cardNumE.grid(row=3,column=1,padx=5,sticky=W)
+
+        cv = Label(self.rootWinPay,text="CVV")
+        cv.grid(row=4,column=0,padx=5,sticky=W)
+
+        self.cvvSV = StringVar()
+        self.cvvE = Entry(self.rootWinPay,textvariable=self.cvvSV,width=5)
+        self.cvvE.grid(row=4,column=1,padx=5,sticky=W)
+
+        ex = Label(self.rootWinPay,text="Expiration Date")
+        ex.grid(row=5,column=0,padx=5,sticky=W)
+
+        self.exDatesv = StringVar()
+        self.exDateE = Entry(self.rootWinPay,textvariable=self.exDatesv,width=10)
+        self.exDateE.grid(row=5,column=1,padx=5,sticky=W)
+
+        submit1 = Button(self.rootWinPay,text="Submit")#,command=self.addCard)
+        submit1.grid(row=6,column=0,columnspan=2)
+
+        ## DELETE CARD ##
+
+        dc = Label(self.rootWinPay,text="Delete Card",font=("Calibri",12,"bold"))
+        dc.grid(row=1,column=2,padx=30,pady=10,sticky=W)
+
+        cn2 = Label(self.rootWinPay,text="Card Number")
+        cn2.grid(row=2,column=2,padx=30,sticky=W)
+
+        cards = [2541] #get cards from database
+        self.delCard = StringVar()
+        pulldownDC = OptionMenu(self.rootWinPay,self.delCard,*cards)
+        pulldownDC.grid(row=2,column=3,padx=15,pady=5,sticky=W)
+
+        submit2 = Button(self.rootWinPay,text="Submit")#,command=self.deleteCard)
+        submit2.grid(row=6,column=2,columnspan=2,pady=20)
+
+    #def addCard(self):
+        #add card info to database
+
+    #def deleteCard(self):
+        #delete card info from database
+
+
+        
 
 ####### CANCEL RESERVATION ######
 
@@ -263,9 +533,6 @@ class GUI:
             self.rootWinC = Toplevel()
             self.rootWinC.title("Cancel Reservation")
             self.rootWinCR.withdraw()
-
-            pic = Label(self.rootWinC,image=self.image)
-            pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
 
             v = Label(self.rootWinC,text="Cancel Reservation",font=("Calibri",15,"bold"),fg="gold")
             v.grid(row=1,column=0,columnspan=2,pady=5)
@@ -336,7 +603,6 @@ class GUI:
         r.grid(row=3,column=0,padx=5,pady=5,sticky=W)
     
         self.rating = StringVar()
-        self.rating.set("Good")
         pulldown = OptionMenu(self.rootWinGR,self.rating,"Very Good","Good","Neutral","Bad","Very Bad")
         pulldown.grid(row=3,column=1,padx=5,pady=5,sticky=W)
         
@@ -353,15 +619,17 @@ class GUI:
     def submitReview(self):
         trainNum = self.tNRE.get()
         rating = self.rating.get()
+        comment = self.comE.get()
         
         if trainNum == "":
             r = messagebox.showerror("Error!","Please enter a train number.")
-
+        elif rating == "":
+            r = messagebox.showerror("Error!","Please select a rating.")
         #check if train number is not available in database
             #r = messagebox.showerror("Error!","This train number is unavailable.")
             
         else:
-            #assign review to train number
+            #assign review and comment to train number
             self.rootWinGR.destroy()
             self.rootWinCF.deiconify()
         
