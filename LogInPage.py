@@ -605,7 +605,7 @@ class GUI:
             back = Button(self.rootWinC,text="Back",command=self.backCancel)
             back.grid(row=6,column=0,padx=10,pady=15,sticky=W)
 
-            search = Button(self.rootWinC,text="Submit",command=self.cancel)
+            search = Button(self.rootWinC,text="Submit")#,command=self.cancel)
             search.grid(row=6,column=1,padx=10,pady=15,sticky=E)
 
 ####### GIVE REVIEW ########
