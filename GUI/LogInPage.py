@@ -778,7 +778,10 @@ class GUI:
 
         logout = Button(self.rootWinMF,text="Log out",command=self.logout)
         logout.grid(row=4,column=1,padx=5,pady=10,sticky=E)
+    
 
+
+        
 ######## VIEW REVENUE REPORT ########
 
     def viewRevenue(self):
@@ -812,6 +815,35 @@ class GUI:
     def backPMgr(self):
         self.rootWinPop.destroy()
         self.rootWinMF.deiconify()
+
+        m=Label(self.rootWinUR,text="Update Reservation",font=("Calibri",15,"bold"),fg="gold")
+        m.grid(row=1,column=0,columnspan=2,padx=5,pady=5)
+
+        rNum1= Label(self.rootWinUR,text="Reservation ID")
+        rNum1.grid(row=2,column=0,columnspan=2,padx=5,pady=5)
+
+        self.uIDsv= StringVar()
+        self.uIDE= Entry(self.rootWinUR,textvariable=self.uIDsv,width=15)
+        self.uIDE.grid(row=2,column=1,padx=5,pady=5)
+
+        back1=Button(self.rootWinUR,text="Back",command=self.backUpdate)
+        back1.grid(row=3,column=1,padx=10,pady=15,sticky=E)
+
+        search1=Button(self.rootWinUR,text="Search",command=self.update)
+        search1.grid(row=3,column=1,padx=10,pady=15,sticky=E)
+
+     def updateReservation(self):
+        
+        self.rootWinUR=Toplevel()
+        self.rootWinUR.title("Update Reservation")
+        self.rootWinCF.withdraw()
+        
+        pic9=Label(self.rootWinUR,image=self.image)
+        pic9.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
+    def backUpdate(self):
+        self.rootWinUR.destroy()
+        self.rootWinCF.deiconify()
         
 win = Tk()
 app = GUI(win)
