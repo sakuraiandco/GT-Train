@@ -605,7 +605,7 @@ class GUI:
             back = Button(self.rootWinC,text="Back",command=self.backCancel)
             back.grid(row=6,column=0,padx=10,pady=15,sticky=W)
 
-            search = Button(self.rootWinC,text="Submit",command=self.cancel)
+            search = Button(self.rootWinC,text="Submit")#,command=self.cancel)
             search.grid(row=6,column=1,padx=10,pady=15,sticky=E)
 
 ####### GIVE REVIEW ########
@@ -770,26 +770,51 @@ class GUI:
         c = Label(self.rootWinMF,text="Choose Functionality",font=("Calibri",15,"bold"),fg="gold")
         c.grid(row=1,column=0,columnspan=2,pady=5)
 
-        rev = Button(self.rootWinMF,text="View revenue report",fg="blue",command=self.typeTrainNum)
+        rev = Button(self.rootWinMF,text="View revenue report",fg="blue",command=self.viewRevenue)
         rev.grid(row=2,column=0,columnspan=2,pady=5)
         
-        route = Button(self.rootWinMF,text="View popular route report",fg="blue")
+        route = Button(self.rootWinMF,text="View popular route report",fg="blue",command=self.viewPopular)
         route.grid(row=3,column=0,columnspan=2,pady=5)
 
         logout = Button(self.rootWinMF,text="Log out",command=self.logout)
         logout.grid(row=4,column=1,padx=5,pady=10,sticky=E)
     
 
-     def updateReservation(self):
+
         
-        self.rootWinUR=Toplevel()
-        self.rootWinUR.title("Update Reservation")
-        self.rootWinCF.withdraw()
-        
-        pic9=Label(self.rootWinUR,image=self.image)
-        pic9.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
-        
-        
+######## VIEW REVENUE REPORT ########
+
+    def viewRevenue(self):
+        self.rootWinRev = Toplevel()
+        self.rootWinRev.title("Manager")
+        self.rootWinMF.withdraw()
+
+        c = Label(self.rootWinRev,text="View Revenue Report",font=("Calibri",15,"bold"),fg="gold")
+        c.grid(row=1,column=0,columnspan=2,pady=5)
+
+        b = Button(self.rootWinRev,text="Back",command=self.backRMgr)
+        b.grid(row=2,column=0,padx=10,pady=15)
+
+    def backRMgr(self):
+        self.rootWinRev.destroy()
+        self.rootWinMF.deiconify()
+
+######## VIEW POPULAR ROUTE REPORT ########
+
+    def viewPopular(self):
+        self.rootWinPop = Toplevel()
+        self.rootWinPop.title("Manager")
+        self.rootWinMF.withdraw()
+
+        c = Label(self.rootWinPop,text="View Popular Route Report",font=("Calibri",15,"bold"),fg="gold")
+        c.grid(row=1,column=0,columnspan=2,pady=5)
+
+        b = Button(self.rootWinPop,text="Back",command=self.backPMgr)
+        b.grid(row=2,column=0,padx=10,pady=15)
+
+    def backPMgr(self):
+        self.rootWinPop.destroy()
+        self.rootWinMF.deiconify()
 
         m=Label(self.rootWinUR,text="Update Reservation",font=("Calibri",15,"bold"),fg="gold")
         m.grid(row=1,column=0,columnspan=2,padx=5,pady=5)
@@ -807,6 +832,15 @@ class GUI:
         search1=Button(self.rootWinUR,text="Search",command=self.update)
         search1.grid(row=3,column=1,padx=10,pady=15,sticky=E)
 
+     def updateReservation(self):
+        
+        self.rootWinUR=Toplevel()
+        self.rootWinUR.title("Update Reservation")
+        self.rootWinCF.withdraw()
+        
+        pic9=Label(self.rootWinUR,image=self.image)
+        pic9.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
+
     def backUpdate(self):
         self.rootWinUR.destroy()
         self.rootWinCF.deiconify()
@@ -814,4 +848,3 @@ class GUI:
 win = Tk()
 app = GUI(win)
 win.mainloop()
-
