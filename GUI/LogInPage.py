@@ -49,7 +49,7 @@ class GUI:
         Button(self.frame,text="Register",command=self.toRegister).pack(side=RIGHT,padx=2,pady=5)
 
         #creates Login button
-        login = Button(self.frame,text="Login",command=self.chooseCFunc)#,command=self.toLogin)
+        login = Button(self.frame,text="Login",command=self.toLogin)
         login.pack(side=RIGHT,padx=2,pady=5)
 
     def connect(self):
@@ -66,20 +66,25 @@ class GUI:
         username = self.uEntry.get()
         password = self.pEntry.get()
 
-        sql = "SELECT * FROM Users WHERE Username='"+username+"' AND Password='"+password+"'"
-        cursor.execute(sql)
-        results = cursor.fetchall()
-        
-        if len(results) > 0:
-            self.chooseCFunc()
-            sql2 = "SELECT * FROM Customer WHERE Username='"+username+"'"
-            results2 = cursor.fetchall()
-            if len(results) > 0:
-                self.chooseCFunc()
-            else:
-                self.chooseMFunc()
+        if username == "":
+            r = messagebox.showerror("Error!","Please enter a username.")
+        elif password == "":
+            r = messagebox.showerror("Error!","Please enter a password.")
         else:
-            r = messagebox.showerror("Error!","This is an invalid username/password combination.")
+            sql = "SELECT * FROM User WHERE Username='"+username+"' AND Password='"+password+"'"
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            
+            if len(results) > 0:
+                sql2 = "SELECT * FROM Customer WHERE Username='"+username+"'"
+                cursor.execute(sql2)
+                results2 = cursor.fetchall()
+                if len(results2) > 0:
+                    self.chooseCFunc()
+                else:
+                    self.chooseMFunc()
+            else:
+                r = messagebox.showerror("Error!","This is an invalid username/password combination.")
 
         cursor.close()
         db.commit()
@@ -156,7 +161,7 @@ class GUI:
                     else:
                         #sql3 = input new customer info in database
                         sql3 = "INSERT INTO User VALUES ('"+username+"','"+password+"')"
-                        sql4 = "INSERT INTO Customer VALUES ('"+username+"','"+email+"')"
+                        sql4 = "INSERT INTO Customer VALUES ('"+username+"',0,'"+email+"')"
                         cursor.execute(sql3)
                         cursor.execute(sql4)
                         cursor.close()
@@ -202,14 +207,11 @@ class GUI:
         school = Button(self.rootWinCF,text="Add school information (student discount)",fg="blue",command=self.addSchool)
         school.grid(row=8,column=0,columnspan=2,pady=5)
 
-        logout = Button(self.rootWinCF,text="Log out",command=self.logout)
+        logout = Button(self.rootWinCF,text="Log out",command=self.logoutCF)
         logout.grid(row=9,column=1,padx=5,pady=5,sticky=E)
 
-    def logout(self):
-        try:
-            self.rootWinCF.withdraw()
-        except:
-            self.rootWinMF.withdraw()
+    def logoutCF(self):
+        self.rootWinCF.withdraw()
         self.rootWin.deiconify()
 
 
@@ -245,9 +247,10 @@ class GUI:
             db = self.connect()
             cursor = db.cursor()
 
-            #sql = check if train number is in table
+            sql = "SELECT TrainRoute.TrainNumber,Stop.StationName,Stop.ArrivalTime,Stop.DepartureTime FROM TrainRoute JOIN Stop ON TrainRoute.TrainNumber = Stop.TrainNumber AND Stop.TrainNumber = "+tNum
             cursor.execute(sql)
             results = cursor.fetchall()
+            print(results)
             
             if len(results) == 0:
                r = messagebox.showerror("Error!","This is an invalid train number.")
@@ -579,8 +582,8 @@ class GUI:
         e = Label(self.rootWinPay,text="Enter date in format YYYY-MM-DD",font=("Calibri",8))
         e.grid(row=6,column=0,columnspan=2,sticky=W)
 
-        submit1 = Button(self.rootWinPay,text="Submit")#,command=self.addCard)
-        submit1.grid(row=7,column=0,columnspan=2)
+        submit1 = Button(self.rootWinPay,text="Submit",command=self.addCard)
+        submit1.grid(row=7,column=0,columnspan=2,pady=15)
 
         ## DELETE CARD ##
 
@@ -593,7 +596,7 @@ class GUI:
         db = self.connect()
         cursor = db.cursor()
 
-        sql = "SELECT PaymentInfo.CardNumber FROM PaymentInfo JOIN User ON User.Username = '"+username+"'"
+        sql = "SELECT CardNumber FROM PaymentInfo WHERE Username = '"+username+"'"
         cursor.execute(sql)
         results = cursor.fetchall()
         
@@ -606,8 +609,8 @@ class GUI:
         pulldownDC = OptionMenu(self.rootWinPay,self.delCard,*cards)
         pulldownDC.grid(row=2,column=3,padx=15,pady=5,sticky=W)
 
-        submit2 = Button(self.rootWinPay,text="Submit")#,command=self.deleteCard)
-        submit2.grid(row=6,column=2,columnspan=2,pady=20)
+        submit2 = Button(self.rootWinPay,text="Submit",command=self.deleteCard)
+        submit2.grid(row=7,column=2,columnspan=2,pady=15)
 
     def addCard(self):
         name = self.nameCE.get()
@@ -619,10 +622,11 @@ class GUI:
         if exDate[4] != "-" or exDate[7] != "-":
             r = messagebox.showerror("Error!","Please enter a expiration date in the correct formatting.")
         else:
+            exDate = datetime.datetime.strptime(exDate,'%Y-%m-%d').date()
             db = self.connect()
             cursor = db.cursor()
 
-            sql = "INSERT INTO PaymentInfo VALUES ("+card+","+cvv+","+exDate+",'"+name+"', (SELECT Username FROM User WHERE Username='"+username+"'))"
+            sql = "INSERT INTO PaymentInfo VALUES ("+card+","+cvv+","+str(exDate)+",'"+name+"', (SELECT Username FROM User WHERE Username='"+username+"'))"
             cursor.execute(sql)
             
             cursor.close()
@@ -674,12 +678,24 @@ class GUI:
         self.rootWinUR.withdraw()
 
     def searchUpdate(self):
+        username = self.uEntry.get()
         urID = self.urIDE.get()
+        db = self.connect()
+        cursor = db.cursor()
+        
         if urID == "":
             r = messagebox.showerror("Error!","Please enter a reservation ID.")
 
         else:
-        #check for reservation ID in database and that it has not already been cancelled
+            #check for reservation ID in database and that it has not already been cancelled
+            sql = "SELECT ReservationID,isCancelled,Username FROM Reservation WHERE ReservationID ="+urID+" AND Username='"+username+"'"
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            print(results)
+            if len(results) == 0:
+                r = messagebox.showerror("Error!","There is no reservation with this ID number.")
+            elif results[0][1] == True:
+                r = messagebox.showerror("Error!","This reservation has already been cancelled.")
 
             self.rootWinU = Toplevel()
             self.rootWinU.title("Update Reservation")
@@ -692,11 +708,15 @@ class GUI:
 
         #navigation buttons
             
-            back = Button(self.rootWinU,text="Back",command=self.backCancel)
+            back = Button(self.rootWinU,text="Back",command=self.back2)
             back.grid(row=6,column=0,padx=10,pady=15,sticky=W)
 
             nextB = Button(self.rootWinU,text="Next",command=self.makeUpdates)
             nextB.grid(row=6,column=1,padx=10,pady=15,sticky=E)
+
+    def back2(self):
+        self.rootWinU.withdraw()
+        self.rootWinUR.deiconify()
 
     def makeUpdates(self):
         self.rootWinMU = Toplevel()
@@ -715,32 +735,35 @@ class GUI:
         self.nDDE = Entry(self.rootWinMU,textvariable=self.nDD,width=15)
         self.nDDE.grid(row=3,column=1,padx=10)
 
+        e = Label(self.rootWinPay,text="Enter date in format YYYY-MM-DD",font=("Calibri",8))
+        e.grid(row=4,column=0,columnspan=2,sticky=W)
+
         s = Button(self.rootWinMU,text="Search availability",command=self.searchAvailable)
         s.grid(row=3,column=2,padx=10)
         
-        Label(self.rootWinMU,text="Update Train Ticket").grid(row=4,column=0,pady=5,sticky=W)
+        Label(self.rootWinMU,text="Update Train Ticket").grid(row=5,column=0,pady=5,sticky=W)
         #table with updated train tickets
         
-        Label(self.rootWinMU,text="Change Fee").grid(row=6,column=0,pady=5,sticky=W)
+        Label(self.rootWinMU,text="Change Fee").grid(row=7,column=0,pady=5,sticky=W)
 
         self.cFee = IntVar()
         #set self.cFee to change fee
         self.cFeeE = Entry(self.rootWinMU,textvariable=self.cFee,width=15)
-        self.cFeeE.grid(row=6,column=1,padx=10)
+        self.cFeeE.grid(row=7,column=1,padx=10)
 
-        Label(self.rootWinMU,text="Updated Total Cost").grid(row=7,column=0,pady=5,sticky=W)
+        Label(self.rootWinMU,text="Updated Total Cost").grid(row=8,column=0,pady=5,sticky=W)
         
         self.newCost = IntVar()
         self.newCostE = Entry(self.rootWinMU,textvariable=self.newCost,width=15)
-        self.newCostE.grid(row=7,column=1,padx=10)
+        self.newCostE.grid(row=8,column=1,padx=10)
 
-        back = Button(self.rootWinMU,text="Back",command=self.backUpdate)
-        back.grid(row=8,column=0,padx=10,pady=15,sticky=W)
+        back = Button(self.rootWinMU,text="Back",command=self.back3)
+        back.grid(row=9,column=0,padx=10,pady=15,sticky=W)
 
-        submit = Button(self.rootWinMU,text="Submit")#,command=self.)
-        submit.grid(row=8,column=1,padx=10,pady=15,sticky=W)
+        submit = Button(self.rootWinMU,text="Submit",command=self.submitUpdates)
+        submit.grid(row=9,column=1,padx=10,pady=15,sticky=W)
 
-    def backUpdate(self):
+    def back3(self):
         self.rootWinMU.withdraw()
         self.rootWinU.deiconify()
 
@@ -752,6 +775,23 @@ class GUI:
         self.rootWinMU.withdraw()
 
         #search available dates with new departure date
+
+    def submitUpdates(self):
+        rID = self.urIDE.get()
+        newDate = self.nDDE.get()
+        
+        db = self.connect()
+        cursor = db.cursor()
+
+        sql = "UPDATE Reserves SET DepartureDate = "+newDate+" WHERE ReservationId = "+rID
+        cursor.execute(sql)
+
+        cursor.close()
+        db.commit()
+        db.close()
+
+        self.rootWinMU.withdraw()
+        self.rootWinCF.deiconify()
         
 
 ####### CANCEL RESERVATION ######
@@ -786,60 +826,88 @@ class GUI:
 
     def cancel(self):
         rID = self.rIDE.get()
+        username = self.uEntry.get()
+        db = self.connect()
+        cursor = db.cursor()
+        
         if rID == "":
             r = messagebox.showerror("Error!","Please enter a reservation ID.")
 
         else:
-        #check for reservation ID in database and that it has not already been cancelled
+            #check for reservation ID in database and that it has not already been cancelled
+            sql = "SELECT ReservationID, isCancelled FROM Reservation WHERE ReservationID ="+rID+" AND Username="+username
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            if len(results) == 0:
+                r = messagebox.showerror("Error!","There is no reservation with this ID number.")
+            elif results[0][1] == True:
+                r = messagebox.showerror("Error!","This reservation has already been cancelled.")
+            else:
 
-            self.rootWinC = Toplevel()
-            self.rootWinC.title("Cancel Reservation")
-            self.rootWinCR.withdraw()
+                self.rootWinC = Toplevel()
+                self.rootWinC.title("Cancel Reservation")
+                self.rootWinCR.withdraw()
 
-            v = Label(self.rootWinC,text="Cancel Reservation",font=("Calibri",15,"bold"),fg="gold")
-            v.grid(row=1,column=0,columnspan=2,pady=5)
+                v = Label(self.rootWinC,text="Cancel Reservation",font=("Calibri",15,"bold"),fg="gold")
+                v.grid(row=1,column=0,columnspan=2,pady=5)
 
-        ## table with reservations listed ##
+            ## table with reservations listed ##
 
-        #total cost of reservation
+            #total cost of reservation
 
-            c = Label(self.rootWinC,text="Total Cost of Reservation")
-            c.grid(row=3,column=0,padx=5,pady=5,sticky=W)
+                c = Label(self.rootWinC,text="Total Cost of Reservation")
+                c.grid(row=3,column=0,padx=5,pady=5,sticky=W)
 
-            #cost = (from database)
-            self.costRiv = IntVar()
-            #self.costRsv.set(cost)
-            self.costRE = Entry(self.rootWinC,textvariable=self.costRiv,width=15)
-            self.costRE.grid(row=3,column=1,padx=5,pady=5)
-            
-        #date of cancellation
-            
-            d = Label(self.rootWinC,text="Date of Cancellation")
-            d.grid(row=4,column=0,padx=5,pady=5,sticky=W)
+                #cost = (from database)
+                self.costRiv = IntVar()
+                #self.costRsv.set(cost)
+                self.costRE = Entry(self.rootWinC,textvariable=self.costRiv,width=15)
+                self.costRE.grid(row=3,column=1,padx=5,pady=5)
+                
+            #date of cancellation
+                
+                d = Label(self.rootWinC,text="Date of Cancellation")
+                d.grid(row=4,column=0,padx=5,pady=5,sticky=W)
 
-            self.datesv = StringVar()
-            self.datesv.set(datetime.date.today())
-            self.dateE = Entry(self.rootWinC,textvariable=self.datesv,width=15)
-            self.dateE.grid(row=4,column=1,padx=5,pady=5)
+                self.datesv = StringVar()
+                self.datesv.set(datetime.date.today())
+                self.dateE = Entry(self.rootWinC,textvariable=self.datesv,width=15)
+                self.dateE.grid(row=4,column=1,padx=5,pady=5)
 
-        #amount to be refunded
-            
-            amount = Label(self.rootWinC,text="Amount to be Refunded")
-            amount.grid(row=5,column=0,padx=5,pady=5,sticky=W)
+            #amount to be refunded
+                
+                amount = Label(self.rootWinC,text="Amount to be Refunded")
+                amount.grid(row=5,column=0,padx=5,pady=5,sticky=W)
 
-            #refund = (from database)
-            self.rfiv = IntVar()
-            #self.rfiv.set(refund)
-            self.rfE = Entry(self.rootWinC,textvariable=self.rfiv,width=15)
-            self.rfE.grid(row=5,column=1,padx=5,pady=5)
+                #refund = (from database)
+                self.rfiv = IntVar()
+                #self.rfiv.set(refund)
+                self.rfE = Entry(self.rootWinC,textvariable=self.rfiv,width=15)
+                self.rfE.grid(row=5,column=1,padx=5,pady=5)
 
-        #navigation buttons
-            
-            back = Button(self.rootWinC,text="Back",command=self.backCancel)
-            back.grid(row=6,column=0,padx=10,pady=15,sticky=W)
+            #navigation buttons
+                
+                back = Button(self.rootWinC,text="Back",command=self.backToID)
+                back.grid(row=6,column=0,padx=10,pady=15,sticky=W)
 
-            search = Button(self.rootWinC,text="Submit")#,command=self.cancel)
-            search.grid(row=6,column=1,padx=10,pady=15,sticky=E)
+                search = Button(self.rootWinC,text="Submit")#,command=self.cancel)
+                search.grid(row=6,column=1,padx=10,pady=15,sticky=E)
+
+    def backToID(self):
+        self.rootWinC.withdraw()
+        self.rootWinCR.deiconify()
+    
+    def submitCancel(self):
+        resID = self.rIDE.get()
+        db = self.connect()
+        cursor = db.cursor()
+
+        sql = "UPDATE Reservation SET IsCancelled = True WHERE ReservationID = "+resID
+        cursor.execute(sql)
+
+        cursor.close()
+        db.commit()
+        db.close()
 
 ####### GIVE REVIEW ########
 
@@ -883,27 +951,38 @@ class GUI:
         trainNum = self.tNRE.get()
         rating = self.rating.get()
         comment = self.comE.get()
+
+        db = self.connect()
+        cursor = db.cursor()
         
         if trainNum == "":
             r = messagebox.showerror("Error!","Please enter a train number.")
         elif rating == "":
             r = messagebox.showerror("Error!","Please select a rating.")
         #check if train number is not available in database
-            #r = messagebox.showerror("Error!","This train number is unavailable.")
-            
         else:
-            if rating == "Good":
-                rating = 2
-            elif rating == "Neutral":
-                rating = 1
-            else:
-                rating = 0
-            db = self.connect()
-            cursor = db.cursor()
-
-            sql = "INSERT INTO Review VALUES ("+rating+","+comment+","+rating+",(SELECT TrainNumber FROM TrainRoute WHERE TrainRoute.TrainNumber = "+trainNum+"), (SELECT Username FROM User WHERE Username = '"+username+"'))"
+            sql = "SELECT TrainNumber FROM TrainRoute WHERE TrainNumber ="+trainNum
             cursor.execute(sql)
-            
+            results = cursor.fetchall()
+            if len(results) == 0:
+                r = messagebox.showerror("Error!","This train number is unavailable.")
+            #add rating to database
+            else:
+                if rating == "Very Good":
+                    rating = 5
+                elif rating == "Good":
+                    rating = 4
+                elif rating == "Neutral":
+                    rating = 3
+                elif rating == "Bad":
+                    rating = 2
+                else:
+                    rating = 1
+                if comment == "":
+                    comment = "NULL"
+                sql2 = "INSERT INTO Review (ReviewNumber,Comment,Rating,TrainNumber,Username) VALUES (NULL,"+comment+","+str(rating)+","+trainNum+","+username+")"
+                cursor.execute(sql2)
+                
             cursor.close()
             db.commit()
             db.close()
@@ -963,28 +1042,32 @@ class GUI:
         db.commit()
         db.close()
 
-        ratings,comments = zip(*results)
-        ratings = list(ratings)
+        comments,ratings = zip(*results)
         comments = list(comments)
+        ratings = list(ratings)
 
         for each in ratings:
-            if each == 2:
+            if each == 5:
+                each = "Very Good"
+            elif each == 4:
                 each = "Good"
-            elif each == 1:
+            elif each == 3:
                 each = "Neutral"
-            else:
+            elif each == 2:
                 each = "Bad"
+            else:
+                each = "Very Bad"
 
         frame = Frame(self.rootWinRT)
         frame.grid(row=2,column=0,padx=5,pady=5)
 
-        Label(frame,text="Rating",bg="grey").grid(row=0,column=0)
-        Label(frame,text="Comment",bg="grey").grid(row=0,column=1)
+        Label(frame,text="Rating",bg="grey").grid(row=0,column=0,sticky=W)
+        Label(frame,text="Comment",bg="grey").grid(row=0,column=1,sticky=W)
 
-        for i in ratings:
+        for i in range(0,len(ratings)):
             Label(frame,text=ratings[i]).grid(row=i+1,column=0)
-        for i in comments:
-            Label(frame,text=comments[i]).grid(row=i+1,column=1)
+        for i in range(0,len(comments)):
+            Label(frame,text=comments[i]).grid(row=i+1,column=1,sticky=W)
 
         back = Button(self.rootWinRT,text="Back to Choose Functionality",command=self.backReviewTable)
         back.grid(row=3,column=0,columnspan=2,padx=10,pady=15)
@@ -1014,7 +1097,7 @@ class GUI:
         self.seE = Entry(self.rootWin4,textvariable=self.sesv,width=30)
         self.seE.grid(row=2,column=1,padx=5,pady=5)
 
-        small = Label(self.rootWin4,text="Your school email address ends with .edu",font=("Calibri",8))
+        small = Label(self.rootWin4,text="Your school email address must end with .edu",font=("Calibri",8))
         small.grid(row=3,column=0,columnspan=2,padx=5,pady=5,sticky=W)
 
         back = Button(self.rootWin4,text="Back",command=self.backSchool)
@@ -1066,8 +1149,12 @@ class GUI:
         route = Button(self.rootWinMF,text="View popular route report",fg="blue",command=self.viewPopular)
         route.grid(row=3,column=0,columnspan=2,pady=5)
 
-        logout = Button(self.rootWinMF,text="Log out",command=self.logout)
+        logout = Button(self.rootWinMF,text="Log out",command=self.logoutMF)
         logout.grid(row=4,column=1,padx=5,pady=10,sticky=E)
+
+    def logoutMF(self):
+        self.rootWinMF.withdraw()
+        self.rootWin.deiconify()
     
         
 ######## VIEW REVENUE REPORT ########
