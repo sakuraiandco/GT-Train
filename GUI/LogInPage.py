@@ -53,6 +53,7 @@ class GUI:
         login.pack(side=RIGHT,padx=2,pady=5)
 
         self.chosenTrains = []
+        self.departDates = []
         self.departures = []
         self.arrivals = []
         self.classes = []
@@ -175,7 +176,7 @@ class GUI:
                     else:
                         #input new customer info in database
                         sql3 = "INSERT INTO User VALUES ('"+username+"','"+password+"')"
-                        sql4 = "INSERT INTO Customer VALUES ('"+username+"',0,'"+email+"')"
+                        sql4 = "INSERT INTO Customer VALUES ((SELECT Username FROM User WHERE Username = "+username+"),0,"+email+")"
                         cursor.execute(sql3)
                         cursor.execute(sql4)
                         cursor.close()
@@ -525,6 +526,7 @@ class GUI:
 
         #adds to list used to make reservation table
         self.chosenTrains.append(trainNum)
+        self.departDates.append(departDate)
         self.departures.append(departsFrom)
         self.arrivals.append(arrivesAt)
         self.classes.append(classNum)
@@ -547,41 +549,44 @@ class GUI:
         self.frame.grid(row=2,column=0,columnspan=3,padx=5,pady=5)
 
         Label(self.frame,text="Train (Train Number)",bg="gold").grid(row=0,column=0,sticky=W)
-        Label(self.frame,text="Time (Duration)",bg="gold").grid(row=0,column=1,sticky=W)
-        Label(self.frame,text="Departs From",bg="gold",width=15).grid(row=0,column=2)
-        Label(self.frame,text="Arrives At",bg="gold",width=15).grid(row=0,column=3)
-        Label(self.frame,text="Class",bg="gold").grid(row=0,column=4,sticky=W)
-        Label(self.frame,text="Price",bg="gold",width=10).grid(row=0,column=5,sticky=W)
-        Label(self.frame,text="# of Baggage",bg="gold").grid(row=0,column=6,sticky=W)
-        Label(self.frame,text="Passenger Name",bg="gold",width=15).grid(row=0,column=7,sticky=W)
-        Label(self.frame,text="Remove",bg="gold").grid(row=0,column=8,sticky=W)
+        Label(self.frame,text="Departure Date",bg="gold").grid(row=0,column=1,sticky=W)
+        Label(self.frame,text="Time (Duration)",bg="gold").grid(row=0,column=2,sticky=W)
+        Label(self.frame,text="Departs From",bg="gold",width=15).grid(row=0,column=3)
+        Label(self.frame,text="Arrives At",bg="gold",width=15).grid(row=0,column=4)
+        Label(self.frame,text="Class",bg="gold").grid(row=0,column=5,sticky=W)
+        Label(self.frame,text="Price",bg="gold",width=10).grid(row=0,column=6,sticky=W)
+        Label(self.frame,text="# of Baggage",bg="gold").grid(row=0,column=7,sticky=W)
+        Label(self.frame,text="Passenger Name",bg="gold",width=15).grid(row=0,column=8,sticky=W)
+        Label(self.frame,text="Remove",bg="gold").grid(row=0,column=9,sticky=W)
 
         #makes list of info to insert reservation
         self.reservations = []
         for i in range(0,len(self.chosenTrains)):
-            reservation = [self.classes[i],departDate,self.passengers[i],self.allBags[i],self.departures[i],self.arrivals[i],self.chosenTrains[i]]
+            reservation = [self.classes[i],self.departDates[i],self.passengers[i],self.allBags[i],self.departures[i],self.arrivals[i],self.chosenTrains[i]]
             self.reservations.append(reservation)
 
         for i in range(0,len(self.chosenTrains)):
             Label(self.frame,text=self.chosenTrains[i]).grid(row=i+1,column=0,sticky=W)
+        for i in range(0,len(self.departDates)):
+            Label(self.frame,text=self.departDates[i]).grid(row=i+1,column=1,sticky=W)
         #for i in range(0,len(chosenTrains)):
-         #   Label(self.frame,text=chosenTrains[i]).grid(row=i+1,column=1,sticky=W)
+         #   Label(self.frame,text=chosenTrains[i]).grid(row=i+1,column=2,sticky=W)
         for i in range(0,len(self.departures)):
-            Label(self.frame,text=self.departures[i]).grid(row=i+1,column=2,sticky=W)
+            Label(self.frame,text=self.departures[i]).grid(row=i+1,column=3,sticky=W)
         for i in range(0,len(self.arrivals)):
-            Label(self.frame,text=self.arrivals[i]).grid(row=i+1,column=3,sticky=W)
+            Label(self.frame,text=self.arrivals[i]).grid(row=i+1,column=4,sticky=W)
         for i in range(0,len(self.classes)):
-            Label(self.frame,text=self.classes[i]).grid(row=i+1,column=4)
+            Label(self.frame,text=self.classes[i]).grid(row=i+1,column=5)
         for i in range(0,len(self.prices)):
-            Label(self.frame,text="%.2f"%self.prices[i]).grid(row=i+1,column=5)
+            Label(self.frame,text="%.2f"%self.prices[i]).grid(row=i+1,column=6)
         for i in range(0,len(self.allBags)):
-            Label(self.frame,text=self.allBags[i]).grid(row=i+1,column=6)
+            Label(self.frame,text=self.allBags[i]).grid(row=i+1,column=7)
         for i in range(0,len(self.passengers)):
-            Label(self.frame,text=self.passengers[i]).grid(row=i+1,column=7,sticky=W)
+            Label(self.frame,text=self.passengers[i]).grid(row=i+1,column=8,sticky=W)
 
         self.removeRow = IntVar()
         for i in range(0,len(self.reservations)):
-            Radiobutton(self.frame,value=i,variable=self.removeRow).grid(row=i+1,column=8)
+            Radiobutton(self.frame,value=i,variable=self.removeRow).grid(row=i+1,column=9)
         Button(self.rootWinRes,text="Remove",command=self.removeTrain).grid(row=3,column=2,padx=5,sticky=E)
 
         sql = "SELECT isStudent FROM Customer WHERE Username='"+username+"'"
@@ -652,6 +657,7 @@ class GUI:
         removeRow = self.removeRow.get()
         self.reservations.remove(self.reservations[removeRow])
         self.chosenTrains.remove(self.chosenTrains[removeRow])
+        self.departDates.remove(self.departDates[removeRow])
         self.departures.remove(self.departures[removeRow])
         self.arrivals.remove(self.arrivals[removeRow])
         self.classes.remove(self.classes[removeRow])
@@ -665,35 +671,38 @@ class GUI:
         self.frame.grid(row=2,column=0,columnspan=3,padx=5,pady=5)
 
         Label(self.frame,text="Train (Train Number)",bg="gold").grid(row=0,column=0,sticky=W)
-        Label(self.frame,text="Time (Duration)",bg="gold").grid(row=0,column=1,sticky=W)
-        Label(self.frame,text="Departs From",bg="gold",width=15).grid(row=0,column=2)
-        Label(self.frame,text="Arrives At",bg="gold",width=15).grid(row=0,column=3)
-        Label(self.frame,text="Class",bg="gold").grid(row=0,column=4,sticky=W)
-        Label(self.frame,text="Price",bg="gold",width=10).grid(row=0,column=5,sticky=W)
-        Label(self.frame,text="# of Baggage",bg="gold").grid(row=0,column=6,sticky=W)
-        Label(self.frame,text="Passenger Name",bg="gold",width=15).grid(row=0,column=7,sticky=W)
-        Label(self.frame,text="Remove",bg="gold").grid(row=0,column=8,sticky=W)
+        Label(self.frame,text="Departure Date",bg="gold").grid(row=0,column=1,sticky=W)
+        Label(self.frame,text="Time (Duration)",bg="gold").grid(row=0,column=2,sticky=W)
+        Label(self.frame,text="Departs From",bg="gold",width=15).grid(row=0,column=3)
+        Label(self.frame,text="Arrives At",bg="gold",width=15).grid(row=0,column=4)
+        Label(self.frame,text="Class",bg="gold").grid(row=0,column=5,sticky=W)
+        Label(self.frame,text="Price",bg="gold",width=10).grid(row=0,column=6,sticky=W)
+        Label(self.frame,text="# of Baggage",bg="gold").grid(row=0,column=7,sticky=W)
+        Label(self.frame,text="Passenger Name",bg="gold",width=15).grid(row=0,column=8,sticky=W)
+        Label(self.frame,text="Remove",bg="gold").grid(row=0,column=9,sticky=W)
 
         for i in range(0,len(self.chosenTrains)):
             Label(self.frame,text=self.chosenTrains[i]).grid(row=i+1,column=0,sticky=W)
+        for i in range(0,len(self.departDates)):
+            Label(self.frame,text=self.departDates[i]).grid(row=i+1,column=1,sticky=W)
         #for i in range(0,len(chosenTrains)):
-         #   Label(self.frame,text=chosenTrains[i]).grid(row=i+1,column=1,sticky=W)
+         #   Label(self.frame,text=chosenTrains[i]).grid(row=i+1,column=2,sticky=W)
         for i in range(0,len(self.departures)):
-            Label(self.frame,text=self.departures[i]).grid(row=i+1,column=2,sticky=W)
+            Label(self.frame,text=self.departures[i]).grid(row=i+1,column=3,sticky=W)
         for i in range(0,len(self.arrivals)):
-            Label(self.frame,text=self.arrivals[i]).grid(row=i+1,column=3,sticky=W)
+            Label(self.frame,text=self.arrivals[i]).grid(row=i+1,column=4,sticky=W)
         for i in range(0,len(self.classes)):
-            Label(self.frame,text=self.classes[i]).grid(row=i+1,column=4)
+            Label(self.frame,text=self.classes[i]).grid(row=i+1,column=5)
         for i in range(0,len(self.prices)):
-            Label(self.frame,text="%.2f"%self.prices[i]).grid(row=i+1,column=5)
+            Label(self.frame,text="%.2f"%self.prices[i]).grid(row=i+1,column=6)
         for i in range(0,len(self.allBags)):
-            Label(self.frame,text=self.allBags[i]).grid(row=i+1,column=6)
+            Label(self.frame,text=self.allBags[i]).grid(row=i+1,column=7)
         for i in range(0,len(self.passengers)):
-            Label(self.frame,text=self.passengers[i]).grid(row=i+1,column=7,sticky=W)
+            Label(self.frame,text=self.passengers[i]).grid(row=i+1,column=8,sticky=W)
 
         self.removeRow = IntVar()
         for i in range(0,len(self.reservations)):
-            Radiobutton(self.frame,value=i,variable=self.removeRow).grid(row=i+1,column=8)
+            Radiobutton(self.frame,value=i,variable=self.removeRow).grid(row=i+1,column=9)
         Button(self.rootWinRes,text="Remove",command=self.removeTrain).grid(row=3,column=2,padx=5,sticky=E)
 
         db = self.connect()
@@ -721,6 +730,10 @@ class GUI:
         totalCost = (totalPrice + bagPrice)*discount
         
         self.costSV.set("%.2f"%totalCost)
+
+        cursor.close()
+        db.commit()
+        db.close()
 
     def moreTrains(self):
         self.rootWinRes.withdraw()
@@ -911,7 +924,7 @@ class GUI:
         cursor.execute(sql3)
         results = cursor.fetchall()
 
-	if len(results) > 0:
+        if len(results) > 0:
             r = messagebox.showerror("Error!","The selected card is being used in a current transaction. This card cannot be deleted.")
         else:
             sql = "DELETE FROM PaymentInfo WHERE CardNumber = "+card
@@ -983,64 +996,88 @@ class GUI:
             elif results[0][1] == True:
                 r = messagebox.showerror("Error!","This reservation has already been cancelled.")
 
-            self.rootWinU = Toplevel()
-            self.rootWinU.title("Update Reservation")
-            self.rootWinUR.withdraw()
+            else:
+                self.rootWinU = Toplevel()
+                self.rootWinU.title("Update Reservation")
+                self.rootWinUR.withdraw()
 
-            v = Label(self.rootWinU,text="Update Reservation",font=("Calibri",15,"bold"),fg="gold")
-            v.grid(row=1,column=0,columnspan=2,pady=5)
+                v = Label(self.rootWinU,text="Update Reservation",font=("Calibri",15,"bold"),fg="gold")
+                v.grid(row=1,column=0,columnspan=2,pady=5)
 
-        ## table with reservations listed ##
+                sql2 = "SELECT Reserves.TrainNumber,Reserves.DepartureDate,Reserves.DepartsFrom,Reserves.ArrivesAt,Reserves.Class,Reserves.NumberBaggage,Reserves.PassengerName,TrainRoute.1stClassPrice,TrainRoute.2ndClassPrice FROM Reserves JOIN TrainRoute ON Reserves.TrainNumber = TrainRoute.TrainNumber WHERE ReservationID = "+urID
 
-            sql2 = "SELECT Reserves.TrainNumber,Reserves.DepartsFrom,Reserves.ArrivesAt,Reserves.Class,Reserves.NumberBaggage,Reserves.PassengerName FROM Reserves JOIN TrainRoute ON Reserves.TrainNumber = TrainRoute.TrainNumber WHERE ReservationID = "+urID
+                cursor.execute(sql2)
+                results2 = cursor.fetchall()
 
-            cursor.execute(sql2)
-            results2 = cursor.fetchall()
-            tNum,depart,arrive,classNum,bag,passenger = zip(*results2)
-            tNum = list(tNum)
-            depart = list(depart)
-            arrive = list(arrive)
-            classNum = list(classNum)
-            bag = list(bag)
-            passenger = list(passenger)
+                cursor.close()
+                db.commit()
+                db.close()
+                
+                tNum,departDate,depart,arrive,classNum,bag,passenger,class1,class2 = zip(*results2)
+                tNum = list(tNum)
+                departDate = list(departDate)
+                depart = list(depart)
+                arrive = list(arrive)
+                classNum = list(classNum)
+                bag = list(bag)
+                passenger = list(passenger)
+                class1 = list(class1)
+                class2 = list(class2)
 
-            frame = Frame(self.rootWinU)
-            frame.grid(row=2,column=0,columnspan=2,padx=5,pady=5)
+                tPrices = []
+                for i in range(0,len(tNum)):
+                    tPrices.append([tNum[i],class1[i],class2[i]])
 
-            Label(frame,text="Select",bg="gold").grid(row=0,column=0,sticky=W)
-            Label(frame,text="Train (Train Number)",bg="gold").grid(row=0,column=1,sticky=W)
-            Label(frame,text="Time (Duration)",bg="gold").grid(row=0,column=2,sticky=W)
-            Label(frame,text="Departs From",bg="gold").grid(row=0,column=3,sticky=W)
-            Label(frame,text="Arrives At",bg="gold").grid(row=0,column=4,sticky=W)
-            Label(frame,text="Class",bg="gold").grid(row=0,column=5,sticky=W)
-            Label(frame,text="Price",bg="gold").grid(row=0,column=6,sticky=W)
-            Label(frame,text="# of Baggage",bg="gold").grid(row=0,column=7,sticky=W)
-            Label(frame,text="Passenger Name",bg="gold").grid(row=0,column=8,sticky=W)
+                #list of reservation by row
+                self.reservations = []
+                for i in range(0,len(tNum)):
+                    reservation = [tNum[i],departDate[i],depart[i],arrive[i],classNum[i],tPrices[i][classNum[i]],bag[i],passenger[i]]
+                    self.reservations.append(reservation)
 
-            #fix radiobuttons
-            self.selectR = StringVar()
-            for i in range(0,len(tNum)):
-                Radiobutton(frame,value=True,variable=self.selectR).grid(row=i+1,column=0)
-            for i in range(0,len(tNum)):
-                Label(frame,text=tNum[i]).grid(row=i+1,column=1)
-            for i in range(0,len(depart)):
-                Label(frame,text=depart[i]).grid(row=i+1,column=3,sticky=W)
-            for i in range(0,len(arrive)):
-                Label(frame,text=arrive[i]).grid(row=i+1,column=4,sticky=W)
-            for i in range(0,len(classNum)):
-                Label(frame,text=classNum[i]).grid(row=i+1,column=5)
-            for i in range(0,len(bag)):
-                Label(frame,text=bag[i]).grid(row=i+1,column=7)
-            for i in range(0,len(passenger)):
-                Label(frame,text=passenger[i]).grid(row=i+1,column=8,sticky=W)
 
-        #navigation buttons
-            
-            back = Button(self.rootWinU,text="Back",command=self.back2)
-            back.grid(row=6,column=0,padx=10,pady=15,sticky=W)
+                #table of current reservatons
+                frame = Frame(self.rootWinU)
+                frame.grid(row=2,column=0,columnspan=2,padx=5,pady=5)
 
-            nextB = Button(self.rootWinU,text="Next",command=self.makeUpdates)
-            nextB.grid(row=6,column=1,padx=10,pady=15,sticky=E)
+                Label(frame,text="Select",bg="gold").grid(row=0,column=0,sticky=W)
+                Label(frame,text="Train (Train Number)",bg="gold").grid(row=0,column=1,sticky=W)
+                Label(frame,text="Departure Date",bg="gold").grid(row=0,column=2,sticky=W)
+                Label(frame,text="Time (Duration)",bg="gold").grid(row=0,column=3,sticky=W)
+                Label(frame,text="Departs From",bg="gold",width=15).grid(row=0,column=4,sticky=W)
+                Label(frame,text="Arrives At",bg="gold",width=15).grid(row=0,column=5,sticky=W)
+                Label(frame,text="Class",bg="gold").grid(row=0,column=6,sticky=W)
+                Label(frame,text="Price",bg="gold",width=10).grid(row=0,column=7,sticky=W)
+                Label(frame,text="# of Baggage",bg="gold").grid(row=0,column=8,sticky=W)
+                Label(frame,text="Passenger Name",bg="gold",width=15).grid(row=0,column=9,sticky=W)
+
+                self.selectR = IntVar()
+                for i in range(0,len(tNum)):
+                    Radiobutton(frame,value=i,variable=self.selectR).grid(row=i+1,column=0)
+                for i in range(0,len(tNum)):
+                    Label(frame,text=tNum[i]).grid(row=i+1,column=1)
+                for i in range(0,len(departDate)):
+                    Label(frame,text=departDate[i]).grid(row=i+1,column=2)
+                #for all time duration
+                for i in range(0,len(depart)):
+                    Label(frame,text=depart[i]).grid(row=i+1,column=4,sticky=W)
+                for i in range(0,len(arrive)):
+                    Label(frame,text=arrive[i]).grid(row=i+1,column=5,sticky=W)
+                for i in range(0,len(classNum)):
+                    Label(frame,text=classNum[i]).grid(row=i+1,column=6)
+                for i in range(0,len(tPrices)):
+                    Label(frame,text="%.2f"%tPrices[i][classNum[i]]).grid(row=i+1,column=7)
+                for i in range(0,len(bag)):
+                    Label(frame,text=bag[i]).grid(row=i+1,column=8)
+                for i in range(0,len(passenger)):
+                    Label(frame,text=passenger[i]).grid(row=i+1,column=9,sticky=W)
+
+                #navigation buttons
+                
+                back = Button(self.rootWinU,text="Back",command=self.back2)
+                back.grid(row=6,column=0,padx=10,pady=15,sticky=W)
+
+                nextB = Button(self.rootWinU,text="Next",command=self.makeUpdates)
+                nextB.grid(row=6,column=1,padx=10,pady=15,sticky=E)
 
     def back2(self):
         self.rootWinU.withdraw()
@@ -1055,7 +1092,26 @@ class GUI:
         v.grid(row=0,column=0,columnspan=3,pady=5)
 
         Label(self.rootWinMU,text="Current Train Ticket").grid(row=1,column=0,pady=5,sticky=W)
-        #table with current train tickets
+
+        frame = Frame(self.rootWinMU)
+        frame.grid(row=2,column=0,columnspan=3,padx=5,pady=5)
+
+        #column names
+        Label(frame,text="Train (Train Number)",bg="gold").grid(row=0,column=0,sticky=W)
+        Label(frame,text="Departure Date",bg="gold").grid(row=0,column=1,sticky=W)
+        Label(frame,text="Time (Duration)",bg="gold").grid(row=0,column=2,sticky=W)
+        Label(frame,text="Departs From",bg="gold",width=15).grid(row=0,column=3,sticky=W)
+        Label(frame,text="Arrives At",bg="gold",width=15).grid(row=0,column=4,sticky=W)
+        Label(frame,text="Class",bg="gold").grid(row=0,column=5,sticky=W)
+        Label(frame,text="Price",bg="gold").grid(row=0,column=6,sticky=W)
+        Label(frame,text="# of Baggage",bg="gold").grid(row=0,column=7,sticky=W)
+        Label(frame,text="Passenger Name",bg="gold",width=15).grid(row=0,column=8,sticky=W)
+
+        #reservation info
+        which = self.selectR.get()
+        for i in range(0,len(self.reservations[which])):
+            Label(frame,text=self.reservations[which][i]).grid(row=1,column=i)
+        #####columns are slightly off until add time duration
         
         Label(self.rootWinMU,text="New Departure Date").grid(row=3,column=0,pady=5,sticky=W)
 
@@ -1063,56 +1119,143 @@ class GUI:
         self.nDDE = Entry(self.rootWinMU,textvariable=self.nDD,width=15)
         self.nDDE.grid(row=3,column=1,padx=10)
 
-        e = Label(self.rootWinPay,text="Enter date in format YYYY-MM-DD",font=("Calibri",8))
+        e = Label(self.rootWinMU,text="Enter date in format YYYY-MM-DD",font=("Calibri",8))
         e.grid(row=4,column=0,columnspan=2,sticky=W)
 
         s = Button(self.rootWinMU,text="Search availability",command=self.searchAvailable)
         s.grid(row=3,column=2,padx=10)
         
-        Label(self.rootWinMU,text="Update Train Ticket").grid(row=5,column=0,pady=5,sticky=W)
-        #table with updated train tickets
-        
-        Label(self.rootWinMU,text="Change Fee").grid(row=7,column=0,pady=5,sticky=W)
-
-        self.cFee = IntVar()
-        #set self.cFee to change fee
-        self.cFeeE = Entry(self.rootWinMU,textvariable=self.cFee,width=15)
-        self.cFeeE.grid(row=7,column=1,padx=10)
-
-        Label(self.rootWinMU,text="Updated Total Cost").grid(row=8,column=0,pady=5,sticky=W)
-        
-        self.newCost = IntVar()
-        self.newCostE = Entry(self.rootWinMU,textvariable=self.newCost,width=15)
-        self.newCostE.grid(row=8,column=1,padx=10)
-
         back = Button(self.rootWinMU,text="Back",command=self.back3)
         back.grid(row=9,column=0,padx=10,pady=15,sticky=W)
-
-        submit = Button(self.rootWinMU,text="Submit",command=self.submitUpdates)
-        submit.grid(row=9,column=1,padx=10,pady=15,sticky=W)
 
     def back3(self):
         self.rootWinMU.withdraw()
         self.rootWinU.deiconify()
 
     def searchAvailable(self):
-        #check that date is valid
+        newDate = self.nDD.get()
 
-        self.rootWinSA = Toplevel()
-        self.rootWinSA.title("Search Availability")
-        self.rootWinMU.withdraw()
+        if newDate[4] != "-" or newDate[7] != "-":
+            r = messagebox.showerror("Error!","Please enter a new departure date in the correct formatting.")
+        else:
+            newDate = datetime.datetime.strptime(newDate,'%Y-%m-%d').date()
+            today = datetime.date.today()
 
-        #search available dates with new departure date
+            tdelta = newDate - today
+            
+            if tdelta.days < 1:
+                r = messagebox.showerror("Error!","Departure dates cannot be changed within one day of departure.")
+            else:
+                self.rootWinMU.withdraw()
+                self.rootWinMU = Toplevel()
+                self.rootWinMU.title("Update Reservation")
+                self.rootWinU.withdraw()
+
+                v = Label(self.rootWinMU,text="Update Reservation",font=("Calibri",15,"bold"),fg="gold")
+                v.grid(row=0,column=0,columnspan=3,pady=5)
+
+                Label(self.rootWinMU,text="Current Train Ticket").grid(row=1,column=0,pady=5,sticky=W)
+
+                frame = Frame(self.rootWinMU)
+                frame.grid(row=2,column=0,columnspan=3,padx=5,pady=5)
+
+                #column names
+                Label(frame,text="Train (Train Number)",bg="gold").grid(row=0,column=0,sticky=W)
+                Label(frame,text="Departure Date",bg="gold").grid(row=0,column=1,sticky=W)
+                Label(frame,text="Time (Duration)",bg="gold").grid(row=0,column=2,sticky=W)
+                Label(frame,text="Departs From",bg="gold",width=15).grid(row=0,column=3,sticky=W)
+                Label(frame,text="Arrives At",bg="gold",width=15).grid(row=0,column=4,sticky=W)
+                Label(frame,text="Class",bg="gold").grid(row=0,column=5,sticky=W)
+                Label(frame,text="Price",bg="gold").grid(row=0,column=6,sticky=W)
+                Label(frame,text="# of Baggage",bg="gold").grid(row=0,column=7,sticky=W)
+                Label(frame,text="Passenger Name",bg="gold",width=15).grid(row=0,column=8,sticky=W)
+
+                #reservation info
+                which = self.selectR.get()
+                for i in range(0,len(self.reservations[which])):
+                    Label(frame,text=self.reservations[which][i]).grid(row=1,column=i)
+                #####columns are slightly off until add time duration
+                
+                Label(self.rootWinMU,text="New Departure Date").grid(row=3,column=0,pady=5,sticky=W)
+
+                self.nDDE = Entry(self.rootWinMU,textvariable=self.nDD,width=15)
+                self.nDDE.grid(row=3,column=1,padx=10)
+
+                e = Label(self.rootWinMU,text="Enter date in format YYYY-MM-DD",font=("Calibri",8))
+                e.grid(row=4,column=0,columnspan=2,sticky=W)
+
+                s = Button(self.rootWinMU,text="Search availability",command=self.searchAvailable)
+                s.grid(row=3,column=2,padx=10)
+                
+                Label(self.rootWinMU,text="Updated Train Ticket").grid(row=5,column=0,pady=5,sticky=W)
+                #table with updated train tickets
+
+                frame2 = Frame(self.rootWinMU)
+                frame2.grid(row=6,column=0,columnspan=3,padx=5,pady=5)
+
+                #column names
+                Label(frame2,text="Train (Train Number)",bg="gold").grid(row=0,column=0,sticky=W)
+                Label(frame2,text="Departure Date",bg="gold").grid(row=0,column=1,sticky=W)
+                Label(frame2,text="Time (Duration)",bg="gold").grid(row=0,column=2,sticky=W)
+                Label(frame2,text="Departs From",bg="gold",width=15).grid(row=0,column=3,sticky=W)
+                Label(frame2,text="Arrives At",bg="gold",width=15).grid(row=0,column=4,sticky=W)
+                Label(frame2,text="Class",bg="gold").grid(row=0,column=5,sticky=W)
+                Label(frame2,text="Price",bg="gold").grid(row=0,column=6,sticky=W)
+                Label(frame2,text="# of Baggage",bg="gold").grid(row=0,column=7,sticky=W)
+                Label(frame2,text="Passenger Name",bg="gold",width=15).grid(row=0,column=8,sticky=W)
+
+                #reservation info
+                which = self.selectR.get()
+                self.reservations[which][1] = self.nDDE.get()
+                for i in range(0,len(self.reservations[which])):
+                    Label(frame2,text=self.reservations[which][i]).grid(row=1,column=i)
+                
+                Label(self.rootWinMU,text="Change Fee").grid(row=7,column=0,pady=5,sticky=W)
+
+                self.cFee = IntVar()
+                self.cFee.set(50)
+                self.cFeeE = Entry(self.rootWinMU,textvariable=self.cFee,width=15)
+                self.cFeeE.grid(row=7,column=1,padx=10)
+
+                Label(self.rootWinMU,text="Updated Total Cost").grid(row=8,column=0,pady=5,sticky=W)
+
+                urID = self.urIDE.get()
+                
+                db = self.connect()
+                cursor = db.cursor()
+                sql = "SELECT TotalCost FROM Reservation WHERE ReservationID="+urID
+                cursor.execute(sql)
+                results = cursor.fetchall()
+                results = list(results)
+                oldCost = results[0][0]
+
+                self.newCost = StringVar()
+                self.newCost.set("%.2f"%(50 + oldCost))
+                self.newCostE = Entry(self.rootWinMU,textvariable=self.newCost,width=15)
+                self.newCostE.grid(row=8,column=1,padx=10)
+
+                back = Button(self.rootWinMU,text="Back",command=self.back3)
+                back.grid(row=9,column=0,padx=10,pady=15,sticky=W)
+
+                submit = Button(self.rootWinMU,text="Submit",command=self.submitUpdates)
+                submit.grid(row=9,column=1,padx=10,pady=15,sticky=E)
+
+                cursor.close()
+                db.commit()
+                db.close()
 
     def submitUpdates(self):
         rID = self.urIDE.get()
         newDate = self.nDDE.get()
+        newCost = self.newCost.get()
         
         db = self.connect()
         cursor = db.cursor()
 
-        sql = "UPDATE Reserves SET DepartureDate = "+newDate+" WHERE ReservationId = "+rID
+        sql = "UPDATE Reserves SET DepartureDate = "+newDate+" WHERE ReservationID = "+rID
+        sql2 = "UPDATE Reservation SET TotalCost = "+newCost+" WHERE ReservationID = "+rID
         cursor.execute(sql)
+        cursor.execute(sql2)
 
         cursor.close()
         db.commit()
@@ -1133,7 +1276,7 @@ class GUI:
         pic.grid(row=0,column=0,columnspan=2,padx=5,pady=5,sticky=W)
 
         v = Label(self.rootWinCR,text="Cancel Reservation",font=("Calibri",15,"bold"),fg="gold")
-        v.grid(row=1,column=0,columnspan=2,pady=5)
+        v.grid(row=1,column=0,columnspan=3,pady=5)
 
         rNum = Label(self.rootWinCR,text="Reservation ID")
         rNum.grid(row=2,column=0,padx=5,pady=5)
@@ -1163,7 +1306,7 @@ class GUI:
 
         else:
             #check for reservation ID in database and that it has not already been cancelled
-            sql = "SELECT ReservationID, isCancelled FROM Reservation WHERE ReservationID ="+rID+" AND Username="+username
+            sql = "SELECT ReservationID, isCancelled FROM Reservation WHERE ReservationID ="+rID+" AND Username='"+username+"'"
             cursor.execute(sql)
             results = cursor.fetchall()
             if len(results) == 0:
@@ -1179,57 +1322,78 @@ class GUI:
                 v = Label(self.rootWinC,text="Cancel Reservation",font=("Calibri",15,"bold"),fg="gold")
                 v.grid(row=1,column=0,columnspan=2,pady=5)
 
-            ## table with reservations listed ##
-                sql2 = "SELECT Reserves.TrainNumber,Reserves.DepartsFrom,Reserves.ArrivesAt,Reserves.Class,Reserves.NumberBaggage,Reserves.PassengerName FROM Reserves JOIN TrainRoute ON Reserves.TrainNumber = TrainRoute.TrainNumber WHERE ReservationID = "+urID
+                sql2 = "SELECT Reserves.TrainNumber,Reserves.DepartureDate,Reserves.DepartsFrom,Reserves.ArrivesAt,Reserves.Class,Reserves.NumberBaggage,Reserves.PassengerName,TrainRoute.1stClassPrice,TrainRoute.2ndClassPrice FROM Reserves JOIN TrainRoute ON Reserves.TrainNumber = TrainRoute.TrainNumber WHERE ReservationID = "+rID
+
                 cursor.execute(sql2)
                 results2 = cursor.fetchall()
-                
-                tNum,depart,arrive,classNum,bag,passenger = zip(*results2)
+               
+                tNum,departDate,depart,arrive,classNum,bag,passenger,class1,class2 = zip(*results2)
                 tNum = list(tNum)
+                departDate = list(departDate)
                 depart = list(depart)
                 arrive = list(arrive)
                 classNum = list(classNum)
                 bag = list(bag)
                 passenger = list(passenger)
+                class1 = list(class1)
+                class2 = list(class2)
 
+                tPrices = []
+                for i in range(0,len(tNum)):
+                    tPrices.append([tNum[i],class1[i],class2[i]])
+
+                #list of reservation by row
+                self.reservations = []
+                for i in range(0,len(tNum)):
+                    reservation = [tNum[i],departDate[i],depart[i],arrive[i],classNum[i],tPrices[i][classNum[i]],bag[i],passenger[i]]
+                    self.reservations.append(reservation)
+
+                #table of current reservatons
                 frame = Frame(self.rootWinC)
-                frame.grid(row=2,column=0,columnspan=2,padx=5,pady=5)
+                frame.grid(row=2,column=0,columnspan=3,padx=5,pady=5)
 
-                Label(frame,text="Train (Train Number)",bg="gold").grid(row=0,column=1,sticky=W)
+                Label(frame,text="Train (Train Number)",bg="gold").grid(row=0,column=0,sticky=W)
+                Label(frame,text="Departure Date",bg="gold").grid(row=0,column=1,sticky=W)
                 Label(frame,text="Time (Duration)",bg="gold").grid(row=0,column=2,sticky=W)
-                Label(frame,text="Departs From",bg="gold").grid(row=0,column=3,sticky=W)
-                Label(frame,text="Arrives At",bg="gold").grid(row=0,column=4,sticky=W)
+                Label(frame,text="Departs From",bg="gold",width=15).grid(row=0,column=3,sticky=W)
+                Label(frame,text="Arrives At",bg="gold",width=15).grid(row=0,column=4,sticky=W)
                 Label(frame,text="Class",bg="gold").grid(row=0,column=5,sticky=W)
-                Label(frame,text="Price",bg="gold").grid(row=0,column=6,sticky=W)
+                Label(frame,text="Price",bg="gold",width=10).grid(row=0,column=6,sticky=W)
                 Label(frame,text="# of Baggage",bg="gold").grid(row=0,column=7,sticky=W)
-                Label(frame,text="Passenger Name",bg="gold").grid(row=0,column=8,sticky=W)
+                Label(frame,text="Passenger Name",bg="gold",width=15).grid(row=0,column=8,sticky=W)
 
                 for i in range(0,len(tNum)):
-                    Label(frame,text=tNum[i]).grid(row=i+1,column=1)
+                    Label(frame,text=tNum[i]).grid(row=i+1,column=0)
+                for i in range(0,len(departDate)):
+                    Label(frame,text=departDate[i]).grid(row=i+1,column=1)
+                #for all time duration
                 for i in range(0,len(depart)):
                     Label(frame,text=depart[i]).grid(row=i+1,column=3,sticky=W)
                 for i in range(0,len(arrive)):
                     Label(frame,text=arrive[i]).grid(row=i+1,column=4,sticky=W)
                 for i in range(0,len(classNum)):
                     Label(frame,text=classNum[i]).grid(row=i+1,column=5)
+                for i in range(0,len(tPrices)):
+                    Label(frame,text="%.2f"%tPrices[i][classNum[i]]).grid(row=i+1,column=6)
                 for i in range(0,len(bag)):
                     Label(frame,text=bag[i]).grid(row=i+1,column=7)
                 for i in range(0,len(passenger)):
                     Label(frame,text=passenger[i]).grid(row=i+1,column=8,sticky=W)
-
-
+                    
             #total cost of reservation
 
-                
+                sql3 = "SELECT TotalCost FROM Reservation WHERE ReservationID = "+rID
+                cursor.execute(sql3)
+                results3 = cursor.fetchall()
+                cost = results3[0][0]
                 
                 c = Label(self.rootWinC,text="Total Cost of Reservation")
                 c.grid(row=3,column=0,padx=5,pady=5,sticky=W)
 
-                #cost = (from database)
                 self.costRiv = IntVar()
-                #self.costRsv.set(cost)
+                self.costRiv.set(cost)
                 self.costRE = Entry(self.rootWinC,textvariable=self.costRiv,width=15)
-                self.costRE.grid(row=3,column=1,padx=5,pady=5)
+                self.costRE.grid(row=3,column=1,padx=5,pady=5,sticky=W)
                 
             #date of cancellation
                 
@@ -1239,42 +1403,71 @@ class GUI:
                 self.datesv = StringVar()
                 self.datesv.set(datetime.date.today())
                 self.dateE = Entry(self.rootWinC,textvariable=self.datesv,width=15)
-                self.dateE.grid(row=4,column=1,padx=5,pady=5)
+                self.dateE.grid(row=4,column=1,padx=5,pady=5,sticky=W)
 
             #amount to be refunded
-                
+
                 amount = Label(self.rootWinC,text="Amount to be Refunded")
                 amount.grid(row=5,column=0,padx=5,pady=5,sticky=W)
+                
+                orderDate = departDate.copy()
+                orderDate.sort()
+                earliest = orderDate[0]
+                today = datetime.date.today()
 
-                #refund = (from database)
+                self.tdelta = earliest - today
+            
+                if self.tdelta.days < 1:
+                    percent = 0
+                elif self.tdelta.days >= 1 and self.tdelta.days <=7:
+                    percent = 0.5
+                else:
+                    percent = 0.8
+
+                refund = (cost*percent)-50
+                if refund < 0:
+                    refund = 0
+
+                self.newCost = cost - refund
+                
                 self.rfiv = IntVar()
-                #self.rfiv.set(refund)
+                self.rfiv.set(refund)
                 self.rfE = Entry(self.rootWinC,textvariable=self.rfiv,width=15)
-                self.rfE.grid(row=5,column=1,padx=5,pady=5)
+                self.rfE.grid(row=5,column=1,padx=5,pady=5,sticky=W)
 
             #navigation buttons
                 
                 back = Button(self.rootWinC,text="Back",command=self.backToID)
                 back.grid(row=6,column=0,padx=10,pady=15,sticky=W)
 
-                search = Button(self.rootWinC,text="Submit")#,command=self.cancel)
-                search.grid(row=6,column=1,padx=10,pady=15,sticky=E)
+                search = Button(self.rootWinC,text="Submit",command=self.submitCancel)
+                search.grid(row=6,column=2,padx=10,pady=15,sticky=E)
+
+                cursor.close()
+                db.commit()
+                db.close()
 
     def backToID(self):
         self.rootWinC.withdraw()
         self.rootWinCR.deiconify()
     
     def submitCancel(self):
-        resID = self.rIDE.get()
-        db = self.connect()
-        cursor = db.cursor()
+        if self.tdelta.days < 1:
+            r = messagebox.showerror("Error!","Reservations cannot be cancelled within one day of earliest departure.")
+        else:
+            resID = self.rIDE.get()
+            db = self.connect()
+            cursor = db.cursor()
+            
+            self.newCost = str(self.newCost)
+            newCost = self.newCost[:len(self.newCost)-2]
 
-        sql = "UPDATE Reservation SET IsCancelled = True WHERE ReservationID = "+resID
-        cursor.execute(sql)
+            sql = "UPDATE Reservation SET isCancelled = True, TotalCost="+newCost+" WHERE Reservation.ReservationID = "+resID
+            cursor.execute(sql)
 
-        cursor.close()
-        db.commit()
-        db.close()
+            cursor.close()
+            db.commit()
+            db.close()
 
 ####### GIVE REVIEW ########
 
@@ -1347,7 +1540,7 @@ class GUI:
                     rating = 1
                 if comment == "":
                     comment = "NULL"
-                sql2 = "INSERT INTO Review (ReviewNumber,Comment,Rating,TrainNumber,Username) VALUES (NULL,"+comment+","+str(rating)+","+trainNum+","+username+")"
+                sql2 = "INSERT INTO Review (ReviewNumber,Comment,Rating,TrainNumber,Username) VALUES (NULL,"+comment+","+str(rating)+","+trainNum+",'"+username+"')"
                 cursor.execute(sql2)
                 
             cursor.close()
@@ -1532,15 +1725,12 @@ class GUI:
         self.rootWinMF.withdraw()
 
         c = Label(self.rootWinRev,text="View Revenue Report",font=("Calibri",15,"bold"),fg="gold")
-        c.grid(row=1,column=0,columnspan=2,pady=5)
+        c.grid(row=1,column=0,columnspan=2,padx=10,pady=5)
 
         db = self.connect()
         cursor = db.cursor()
 
-        today = datetime.date.today()
-        month = today.month
-
-        sql = "SELECT MONTH(Reserves.DepartureDate) AS Month, SUM(Reservation.TotalCost) as Revenue FROM Reservation, Reserves WHERE MONTH(Reserves.DepartureDate) = "+str(month)
+        sql = "SELECT MONTH(Reserves.DepartureDate) AS Month, SUM(Reservation.TotalCost) as Revenue FROM Reservation JOIN Reserves ON Reservation.ReservationID = Reserves.ReservationID GROUP BY MONTH(Reserves.DepartureDate) LIMIT 3"
         cursor.execute(sql)
         results = cursor.fetchall()
 
@@ -1551,8 +1741,8 @@ class GUI:
         frame = Frame(self.rootWinRev)
         frame.grid(row=2,column=0,padx=5,pady=5)
         
-        Label(frame,text="Month",bg="gold").grid(row=0,column=0,sticky=W)
-        Label(frame,text="Revenue",bg="gold").grid(row=0,column=1,sticky=W)
+        Label(frame,text="Month",bg="gold",width=10).grid(row=0,column=0)
+        Label(frame,text="Revenue",bg="gold",width=10).grid(row=0,column=1,sticky=W)
         
         possible = ['January','February','March','April','May','June','July','August','September','October','November','December']
         
@@ -1560,7 +1750,7 @@ class GUI:
             months[i] = possible[months[i]-1]
             Label(frame,text=months[i]).grid(row=i+1,column=0,sticky=W)
         for i in range(0,len(revenue)):
-            Label(frame,text=revenue[i]).grid(row=i+1,column=1,sticky=W)
+            Label(frame,text="%.2f"%revenue[i]).grid(row=i+1,column=1,sticky=W)
 
         b = Button(self.rootWinRev,text="Back",command=self.backRMgr)
         b.grid(row=3,column=0,padx=10,pady=15)
@@ -1579,6 +1769,28 @@ class GUI:
         c = Label(self.rootWinPop,text="View Popular Route Report",font=("Calibri",15,"bold"),fg="gold")
         c.grid(row=0,column=0,columnspan=2,pady=5)
 
+        today = datetime.date.today()
+        #three_months = today + relativedelta(months=months-1)
+        #print(three_months)
+
+        db = self.connect()
+        cursor = db.cursor()
+
+        sql = "SELECT MONTH(Reserves.DepartureDate) AS Month, Reserves.TrainNumber AS TrainNumber, COUNT(Reserves.TrainNumber) AS ReserveNum FROM Reservation JOIN Reserves ON Reservation.ReservationID = Reserves.ReservationID WHERE MONTH(Reserves.DepartureDate) = "+str(3)+" GROUP BY Reserves.TrainNumber HAVING COUNT(Reserves.TrainNumber) > 0 ORDER BY ReserveNum DESC LIMIT 3"
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        trains = []
+        for each in results:
+            trains.append(list(each))
+
+        months = []
+        trainNums = []
+        resNums = []
+        for each in trains:
+            months.append(each[0])
+            trainNums.append(each[1])
+            resNums.append(each[2])
+
         frame = Frame(self.rootWinPop)
         frame.grid(row=1,column=0,padx=5,pady=5)
         
@@ -1588,11 +1800,12 @@ class GUI:
         
         possible = ['January','February','March','April','May','June','July','August','September','October','November','December']
         
-        #for i in range(0,len(months)):
-         #   months[i] = possible[months[i]-1]
-          #  Label(frame,text=months[i]).grid(row=i+1,column=0,sticky=W)
-        #for i in range(0,len(revenue)):
-         #   Label(frame,text=revenue[i]).grid(row=i+1,column=1,sticky=W)
+        months[0] = possible[months[0]-1]
+        Label(frame,text=months[0]).grid(row=1,column=0,sticky=W)
+        for i in range(0,len(trainNums)):
+            Label(frame,text=trainNums[i]).grid(row=i+1,column=1,sticky=W)
+        for i in range(0,len(resNums)):
+            Label(frame,text=resNums[i]).grid(row=i+1,column=2,sticky=W)
 
         b = Button(self.rootWinPop,text="Back",command=self.backPMgr)
         b.grid(row=2,column=0,padx=10,pady=15)
