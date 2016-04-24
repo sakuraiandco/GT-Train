@@ -1769,46 +1769,119 @@ class GUI:
         c = Label(self.rootWinPop,text="View Popular Route Report",font=("Calibri",15,"bold"),fg="gold")
         c.grid(row=0,column=0,columnspan=2,pady=5)
 
+        frame = Frame(self.rootWinPop)
+        frame.grid(row=1,column=0,padx=5,pady=5)
+            
+        Label(frame,text="Month",bg="gold",width=10).grid(row=0,column=0,sticky=W)
+        Label(frame,text="Train Number",bg="gold",width=10).grid(row=0,column=1,sticky=W)
+        Label(frame,text="# of Reservations",bg="gold",width=10).grid(row=0,column=2,sticky=W)
+            
         today = datetime.date.today()
-        #three_months = today + relativedelta(months=months-1)
-        #print(three_months)
+        if today.month != 1:
+            month3 = datetime.date(today.year,today.month-1,today.day).month
+        else:
+            month3 = datetime.date(today.year-1,12,today.day).month
+            
+        if today.month == 2:
+            month2 = datetime.date(today.year-1,12,today.day).month
+        elif today.month == 1:
+            month2 = datetime.date(today.year-1,11,today.day).month
+        else:
+            month2 = datetime.date(today.year,today.month-2,today.day).month
+            
+        if today.month == 3:
+            month1 = datetime.date(today.year-1,12,today.day).month
+        if today.month == 2:
+            month1 = datetime.date(today.year-1,11,today.day).month
+        if today.month == 1:
+            month1 = datetime.date(today.year-1,10,today.day).month
+        else:
+            month1 = datetime.date(today.year,today.month-3,today.day).month
 
         db = self.connect()
         cursor = db.cursor()
 
-        sql = "SELECT MONTH(Reserves.DepartureDate) AS Month, Reserves.TrainNumber AS TrainNumber, COUNT(Reserves.TrainNumber) AS ReserveNum FROM Reservation JOIN Reserves ON Reservation.ReservationID = Reserves.ReservationID WHERE MONTH(Reserves.DepartureDate) = "+str(3)+" GROUP BY Reserves.TrainNumber HAVING COUNT(Reserves.TrainNumber) > 0 ORDER BY ReserveNum DESC LIMIT 3"
+        months = [month1,month2,month3]
+
+        #month 1
+        sql = "SELECT MONTH(Reserves.DepartureDate) AS Month, Reserves.TrainNumber AS TrainNumber, COUNT(Reserves.TrainNumber) AS ReserveNum FROM Reservation JOIN Reserves ON Reservation.ReservationID = Reserves.ReservationID WHERE MONTH(Reserves.DepartureDate) = "+str(months[0])+" GROUP BY Reserves.TrainNumber HAVING COUNT(Reserves.TrainNumber) > 0 ORDER BY ReserveNum DESC LIMIT 3"
         cursor.execute(sql)
         results = cursor.fetchall()
         trains = []
-        for each in results:
-            trains.append(list(each))
+        for j in results:
+            trains.append(list(j))
 
-        months = []
+        mons = []
         trainNums = []
         resNums = []
         for each in trains:
-            months.append(each[0])
+            mons.append(each[0])
             trainNums.append(each[1])
             resNums.append(each[2])
 
-        frame = Frame(self.rootWinPop)
-        frame.grid(row=1,column=0,padx=5,pady=5)
-        
-        Label(frame,text="Month",bg="gold").grid(row=0,column=0,sticky=W)
-        Label(frame,text="Train Number",bg="gold").grid(row=0,column=1,sticky=W)
-        Label(frame,text="# of Reservations",bg="gold").grid(row=0,column=2,sticky=W)
-        
         possible = ['January','February','March','April','May','June','July','August','September','October','November','December']
         
-        months[0] = possible[months[0]-1]
-        Label(frame,text=months[0]).grid(row=1,column=0,sticky=W)
-        for i in range(0,len(trainNums)):
-            Label(frame,text=trainNums[i]).grid(row=i+1,column=1,sticky=W)
-        for i in range(0,len(resNums)):
-            Label(frame,text=resNums[i]).grid(row=i+1,column=2,sticky=W)
+        mons[0] = possible[months[0]-1]
+        Label(frame,text=mons[0],width=10).grid(row=1,column=0)
+        for j in range(0,len(trainNums)):
+            Label(frame,text=trainNums[j],width=10).grid(row=j+1,column=1)
+        for j in range(0,len(resNums)):
+            Label(frame,text=resNums[j],width=10).grid(row=j+1,column=2)
+
+        #month 2
+        sql2 = "SELECT MONTH(Reserves.DepartureDate) AS Month, Reserves.TrainNumber AS TrainNumber, COUNT(Reserves.TrainNumber) AS ReserveNum FROM Reservation JOIN Reserves ON Reservation.ReservationID = Reserves.ReservationID WHERE MONTH(Reserves.DepartureDate) = "+str(months[1])+" GROUP BY Reserves.TrainNumber HAVING COUNT(Reserves.TrainNumber) > 0 ORDER BY ReserveNum DESC LIMIT 3"
+        cursor.execute(sql2)
+        results2 = cursor.fetchall()
+        trains2 = []
+        for j in results2:
+            trains2.append(list(j))
+
+        mons2 = []
+        trainNums2 = []
+        resNums2 = []
+        for each in trains2:
+            mons2.append(each[0])
+            trainNums2.append(each[1])
+            resNums2.append(each[2])
+
+        frame2 = Frame(self.rootWinPop)
+        frame2.grid(row=2,column=0,padx=5,pady=5)
+        
+        mons2[0] = possible[months[1]-1]
+        Label(frame2,text=mons2[0],width=10).grid(row=1,column=0)
+        for j in range(0,len(trainNums2)):
+            Label(frame2,text=trainNums2[j],width=10).grid(row=j+1,column=1)
+        for j in range(0,len(resNums2)):
+            Label(frame2,text=resNums2[j],width=10).grid(row=j+1,column=2)
+
+        #month 3
+        sql3 = "SELECT MONTH(Reserves.DepartureDate) AS Month, Reserves.TrainNumber AS TrainNumber, COUNT(Reserves.TrainNumber) AS ReserveNum FROM Reservation JOIN Reserves ON Reservation.ReservationID = Reserves.ReservationID WHERE MONTH(Reserves.DepartureDate) = "+str(months[2])+" GROUP BY Reserves.TrainNumber HAVING COUNT(Reserves.TrainNumber) > 0 ORDER BY ReserveNum DESC LIMIT 3"
+        cursor.execute(sql3)
+        results3 = cursor.fetchall()
+        trains3 = []
+        for j in results3:
+            trains3.append(list(j))
+
+        mons3 = []
+        trainNums3 = []
+        resNums3 = []
+        for each in trains3:
+            mons3.append(each[0])
+            trainNums3.append(each[1])
+            resNums3.append(each[2])
+
+        frame3 = Frame(self.rootWinPop)
+        frame3.grid(row=3,column=0,padx=5,pady=5)
+        
+        mons3[0] = possible[months[2]-1]
+        Label(frame3,text=mons3[0],width=10).grid(row=1,column=0)
+        for j in range(0,len(trainNums3)):
+            Label(frame3,text=trainNums3[j],width=10).grid(row=j+1,column=1)
+        for j in range(0,len(resNums3)):
+            Label(frame3,text=resNums3[j],width=10).grid(row=j+1,column=2)
 
         b = Button(self.rootWinPop,text="Back",command=self.backPMgr)
-        b.grid(row=2,column=0,padx=10,pady=15)
+        b.grid(row=4,column=0,padx=10,pady=15)
 
     def backPMgr(self):
         self.rootWinPop.withdraw()
