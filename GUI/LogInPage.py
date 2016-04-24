@@ -302,11 +302,16 @@ class GUI:
 
         tNum = Label(self.rootWinSearch,text="Departs From")
         tNum.grid(row=2,column=0,padx=5,pady=5,sticky=W)
-
+         
         #populate with possible starting cities
         db = self.connect()
         cursor = db.cursor()
-
+        sql= "SELECT distinct DepartsFrom FROM Reserves"
+        cursor.execute(sql)
+        results=cursor.fetchall()
+        aList=[]
+        for items in results:
+            aList.append(items)
         #sql = get list of all possible train stations
         #cursor.execute(sql)
         #results = cursor.fetchall()
@@ -315,7 +320,7 @@ class GUI:
         db.commit()
         db.close()
             
-        cities = ['Boston'] #results #make it a list intead of tuples?
+        cities = aList #results #make it a list intead of tuples?
 
         self.departsFrom = StringVar()
         pulldownD = OptionMenu(self.rootWinSearch,self.departsFrom,*cities)
