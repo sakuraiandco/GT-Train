@@ -403,26 +403,36 @@ class GUI:
                 db = self.connect()
                 cursor = db.cursor()
 
-                sql = "SELECT DISTINCT Stop.TrainNumber FROM Stop JOIN Station ON Stop.StationName = Station.Name WHERE Station.Location = '"+departsFrom+"'"
+                sql = "SELECT DISTINCT TrainNumber FROM Reserves WHERE DepartsFrom = '"+departsFrom+"' AND ArrivesAt = '"+arrivesAt+"'"
                 cursor.execute(sql)
                 results = cursor.fetchall()
 
+                if len(results) == 0:
+                    r = messagebox.showerror("Error!","There is not train route from the selected departure location to the selected arrival location.")
+                else:
+                    results3 = []
+                    for each in results:
+                        results3.append(each[0])
+
+                    allResults = []
+                    for each in results3:
+                        sql2 = "SELECT TrainNumber,1stClassPrice,2ndClassPrice FROM TrainRoute WHERE TrainNumber = "+str(each)
+                        cursor.execute(sql2)
+                        results2 = cursor.fetchall()
+                        allResults.append(results2)
+
                 trains = []
-                for each in results:
-                    for one in each:
-                        trains.append(one)
+                for i in range(0,len(allResults)):
+                    for j in range(0,len(allResults[i])):
+                        trains.append(allResults[i][j])
 
-                #for each in trains:
-                    #sql2 = 
-
-                sql2 = "SELECT TrainRoute.TrainNumber, TrainRoute.1stClassPrice, TrainRoute.2ndClassPrice FROM TrainRoute JOIN Stop ON TrainRoute.TrainNumber = Stop.TrainNumber JOIN Station ON Stop.StationName = Station.Name AND Station.Location = '"+departsFrom+"'"
-                cursor.execute(sql2)
-                results2 = cursor.fetchall()
-
-                trains,class1,class2 = zip(*results2)
-                trains = list(trains)
-                class1 = list(class1)
-                class2 = list(class2)
+                trainNums = []
+                class1 = []
+                class2 = []
+                for each in trains:
+                    trainNums.append(each[0])
+                    class1.append(each[1])
+                    class2.append(each[2])
 
                 frame = Frame(self.rootWinSelectD)
                 frame.grid(row=1,column=0,columnspan=2,padx=5,pady=5)
@@ -433,8 +443,8 @@ class GUI:
                 Label(frame,text="2nd Class Price",bg="gold").grid(row=0,column=3,sticky=W)
 
                 self.trainRowCol = StringVar()
-                for i in range(0,len(trains)):
-                    Label(frame,text=trains[i]).grid(row=i+1,column=0,sticky=W)
+                for i in range(0,len(trainNums)):
+                    Label(frame,text=trainNums[i]).grid(row=i+1,column=0)
                 for i in range(0,len(class1)):
                     Radiobutton(frame,text="%.2f"%class1[i],value=str(i+1)+str(1),variable=self.trainRowCol).grid(row=i+1,column=2,sticky=W)
                 for i in range(0,len(class2)):
@@ -449,7 +459,7 @@ class GUI:
                 cursor.close()
                 db.commit()
                 db.close()
-
+                
     def backToSearch(self):
         self.rootWinSelectD.withdraw()
         self.rootWinSearch.deiconify()
@@ -767,7 +777,7 @@ class GUI:
             self.resID = results[0][0]
 	
             for each in self.reservations:
-                sql = "INSERT INTO Reserves VALUES ("+str(each[0])+",'"+each[1]+"',"+each[2]+","+str(each[3])+",'"+each[4]+"','"+each[5]+"', (SELECT ReservationID FROM Reserves WHERE ReservationID = "+str(self.resID)+","+str(each[6])+")"
+                sql = "INSERT INTO Reserves VALUES ((SELECT ReservationID FROM Reservation WHERE ReservationID = "+str(self.resID)+"),"+str(each[6])+","+str(each[0])+",'"+str(each[1])+"','"+str(each[2])+"',"+str(each[3])+",'"+str(each[4])+"','"+str(each[5])+"')"
                 cursor.execute(sql)
 
             cursor.close()
