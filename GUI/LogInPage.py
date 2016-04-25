@@ -328,21 +328,6 @@ class GUI:
         tNum = Label(self.rootWinSearch,text="Departs From")
         tNum.grid(row=2,column=0,padx=5,pady=5,sticky=W)
 
-         
-        #populate with possible starting cities
-        db = self.connect()
-        cursor = db.cursor()
-        sql= "SELECT distinct DepartsFrom FROM Reserves"
-        cursor.execute(sql)
-        results=cursor.fetchall()
-        aList=[]
-        for items in results:
-            aList.append(items)
-        #sql = get list of all possible train stations
-        #cursor.execute(sql)
-        #results = cursor.fetchall()
-
-
         db = self.connect()
         cursor = db.cursor()
 
@@ -351,19 +336,14 @@ class GUI:
         cursor.execute(sql)
         results = cursor.fetchall()
 
-
         cursor.close()
         db.commit()
         db.close()
             
-
-        cities = aList #results #make it a list intead of tuples?
-
         cities = []
         for each in results:
             for one in each:
                 cities.append(one)
-
 
         self.departsFrom = StringVar()
         pulldownD = OptionMenu(self.rootWinSearch,self.departsFrom,*cities)
@@ -669,7 +649,7 @@ class GUI:
         back = Button(self.rootWinRes,text="Back",command=self.backToTravel)
         back.grid(row=7,column=0,padx=10,pady=15,sticky=W)
 
-        submit = Button(self.rootWinRes,text="Submit",command=self.confirmScreen)#,command=self.submitRes)
+        submit = Button(self.rootWinRes,text="Submit",command=self.submitRes)
         submit.grid(row=7,column=2,padx=10,pady=15,sticky=E)
 
     def removeTrain(self):
@@ -767,28 +747,34 @@ class GUI:
         ## add all info to database ##
 
         card = self.chosenCard.get()
-        username = self.uEntrry.get()
+        card = card[2:len(card)-3]
+        username = self.uEntry.get()
         totalCost = self.costSV.get()
+        totalCost = totalCost[:len(totalCost)-3]
 
         if card == "":
-            r = messagebox.showerror("Error!","Please add a payment method.")
+            r = messagebox.showerror("Error!","Please select a payment method.")
         else:
-
-            ### trying to generate reservation id
-
-    #LAST_INSERT_ID()
             db = self.connect()
             cursor = db.cursor()
 
-    ##        sql = 
-    ##        for each in self.reservations:
-    ##            sql = "INSERT INTO Reserves	VALUES ("+each[0]+",'"+each[1]+"',"+each[2]+","+each[3]+","+each[4]+","+each[5]+", (SELECT ReservationID FROM Reserves WHERE ReservationID = LAST_INSERT_ID(),"+each[6]+")
-    ##            cursor.execute(sql)
+            sql = "INSERT INTO Reservation(ReservationID,isCancelled,CardNumber,Username,TotalCost) VALUES(NULL,0,"+card+",(SELECT Username FROM User WHERE Username = '"+username+"'),"+totalCost+")"
+            cursor.execute(sql)
 
-            #for
-            
+            sql2 = "SELECT ReservationID FROM Reservation WHERE Username = '"+username+"' GROUP BY `ReservationID` DESC"
+            cursor.execute(sql2)
+            results = cursor.fetchall()
+            self.resID = results[0][0]
+	
+            for each in self.reservations:
+                sql = "INSERT INTO Reserves VALUES ("+str(each[0])+",'"+each[1]+"',"+each[2]+","+str(each[3])+",'"+each[4]+"','"+each[5]+"', (SELECT ReservationID FROM Reserves WHERE ReservationID = "+str(self.resID)+","+str(each[6])+")"
+                cursor.execute(sql)
 
-            # self.confirmScreen()
+            cursor.close()
+            db.commit()
+            db.close()
+
+            self.confirmScreen()
 
     def confirmScreen(self):
         self.rootWinCon = Toplevel()
@@ -801,9 +787,8 @@ class GUI:
         r = Label(self.rootWinCon,text="Reservation ID")
         r.grid(row=2,column=0,padx=5,pady=5,sticky=W)
 
-        resID = 12345
         self.resIDsv = StringVar()
-        self.resIDsv.set(resID)
+        self.resIDsv.set(self.resID)
         self.resIDE = Entry(self.rootWinCon,textvariable=self.resIDsv,width=10)
         self.resIDE.grid(row=2,column=1,padx=5,pady=5)
 
@@ -1560,6 +1545,8 @@ class GUI:
                     rating = 1
                 if comment == "":
                     comment = "NULL"
+                else:
+                    comment = "'"+comment+"'"
                 sql2 = "INSERT INTO Review (ReviewNumber,Comment,Rating,TrainNumber,Username) VALUES (NULL,"+comment+","+str(rating)+","+trainNum+",'"+username+"')"
                 cursor.execute(sql2)
                 
@@ -1641,8 +1628,8 @@ class GUI:
         frame = Frame(self.rootWinRT)
         frame.grid(row=2,column=0,padx=5,pady=5)
 
-        Label(frame,text="Rating",bg="grey").grid(row=0,column=0,sticky=W)
-        Label(frame,text="Comment",bg="grey").grid(row=0,column=1,sticky=W)
+        Label(frame,text="Rating",bg="gold").grid(row=0,column=0,sticky=W)
+        Label(frame,text="Comment",bg="gold",width=20).grid(row=0,column=1,sticky=W)
 
         for i in range(0,len(ratings)):
             Label(frame,text=ratings[i]).grid(row=i+1,column=0)
